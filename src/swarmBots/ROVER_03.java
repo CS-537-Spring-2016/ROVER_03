@@ -92,11 +92,11 @@ public class ROVER_03 implements Runnable {
 			// **** get equipment listing ****			
 			ArrayList<String> equipment = new ArrayList<String>();
 			equipment = getEquipment();
-			//System.out.println("ROVER_00 equipment list results drive " + equipment.get(0));
+			//System.out.println("ROVER_03 equipment list results drive " + equipment.get(0));
 			System.out.println("ROVER_03 equipment list results " + equipment + "\n");
 	
 			// ***** do a SCAN *****
-			//System.out.println("ROVER_00 sending SCAN request");
+			//System.out.println("ROVER_03 sending SCAN request");
 			this.doScan();
 			scanMap.debugPrintMap();
 			System.out.println("ROVER_03 ------------ bottom process control --------------"); 
@@ -113,7 +113,7 @@ public class ROVER_03 implements Runnable {
 	
 		private void clearReadLineBuffer() throws IOException{
 			while(in.ready()){
-				//System.out.println("ROVER_00 clearing readLine()");
+				//System.out.println("ROVER_03 clearing readLine()");
 				String garbage = in.readLine();	
 			}
 		}
@@ -121,7 +121,7 @@ public class ROVER_03 implements Runnable {
 
 		// method to retrieve a list of the rover's equipment from the server
 		private ArrayList<String> getEquipment() throws IOException {
-			//System.out.println("ROVER_00 method getEquipment()");
+			//System.out.println("ROVER_03 method getEquipment()");
 			Gson gson = new GsonBuilder().setPrettyPrinting().create();
 			out.println("EQUIPMENT");
 			
@@ -130,17 +130,17 @@ public class ROVER_03 implements Runnable {
 				jsonEqListIn = "";
 			}
 			StringBuilder jsonEqList = new StringBuilder();
-			//System.out.println("ROVER_00 incomming EQUIPMENT result - first readline: " + jsonEqListIn);
+			//System.out.println("ROVER_03 incomming EQUIPMENT result - first readline: " + jsonEqListIn);
 			
 			if(jsonEqListIn.startsWith("EQUIPMENT")){
 				while (!(jsonEqListIn = in.readLine()).equals("EQUIPMENT_END")) {
 					if(jsonEqListIn == null){
 						break;
 					}
-					//System.out.println("ROVER_00 incomming EQUIPMENT result: " + jsonEqListIn);
+					//System.out.println("ROVER_03 incomming EQUIPMENT result: " + jsonEqListIn);
 					jsonEqList.append(jsonEqListIn);
 					jsonEqList.append("\n");
-					//System.out.println("ROVER_00 doScan() bottom of while");
+					//System.out.println("ROVER_03 doScan() bottom of while");
 				}
 			} else {
 				// in case the server call gives unexpected results
@@ -151,7 +151,7 @@ public class ROVER_03 implements Runnable {
 			String jsonEqListString = jsonEqList.toString();		
 			ArrayList<String> returnList;		
 			returnList = gson.fromJson(jsonEqListString, new TypeToken<ArrayList<String>>(){}.getType());		
-			//System.out.println("ROVER_00 returnList " + returnList);
+			//System.out.println("ROVER_03 returnList " + returnList);
 			
 			return returnList;
 		}
@@ -159,7 +159,7 @@ public class ROVER_03 implements Runnable {
 
 		// sends a SCAN request to the server and puts the result in the scanMap array
 		public void doScan() throws IOException {
-			//System.out.println("ROVER_00 method doScan()");
+			//System.out.println("ROVER_03 method doScan()");
 			Gson gson = new GsonBuilder().setPrettyPrinting().create();
 			out.println("SCAN");
 
@@ -173,23 +173,23 @@ public class ROVER_03 implements Runnable {
 			
 			if(jsonScanMapIn.startsWith("SCAN")){	
 				while (!(jsonScanMapIn = in.readLine()).equals("SCAN_END")) {
-					//System.out.println("ROVER_00 incomming SCAN result: " + jsonScanMapIn);
+					//System.out.println("ROVER_03 incomming SCAN result: " + jsonScanMapIn);
 					jsonScanMap.append(jsonScanMapIn);
 					jsonScanMap.append("\n");
-					//System.out.println("ROVER_00 doScan() bottom of while");
+					//System.out.println("ROVER_03 doScan() bottom of while");
 				}
 			} else {
 				// in case the server call gives unexpected results
 				clearReadLineBuffer();
 				return; // server response did not start with "SCAN"
 			}
-			//System.out.println("ROVER_00 finished scan while");
+			//System.out.println("ROVER_03 finished scan while");
 
 			String jsonScanMapString = jsonScanMap.toString();
 			// debug print json object to a file
 			//new MyWriter( jsonScanMapString, 0);  //gives a strange result - prints the \n instead of newline character in the file
 
-			//System.out.println("ROVER_00 convert from json back to ScanMap class");
+			//System.out.println("ROVER_03 convert from json back to ScanMap class");
 			// convert from the json string back to a ScanMap object
 			scanMap = gson.fromJson(jsonScanMapString, ScanMap.class);		
 		}
