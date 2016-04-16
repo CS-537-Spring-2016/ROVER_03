@@ -14,12 +14,7 @@ import com.google.gson.reflect.TypeToken;
 import common.Coord;
 import common.ScanMap;
 
-/*
- * This is just an idea for the moment but ROVER_03 might have to implement
- * runnable in order to allow for multithreading. The reason we might need this 
- * is because in order to communicate with the other rovers in blue corporation 
- * we will most likely need to create a P2P network connection between the rovers.
- * */
+
 public class ROVER_03 implements Runnable {
 	
 	// Line 16 to 32 don't need to be changed, got these from sample rovers
