@@ -14,7 +14,7 @@ public class RoverLocations {
         // TODO - have initial positions loaded from a file instead of hard coded
 //		roverHash.put(RoverName.ROVER_01, new Coord(1,1));
 //		roverHash.put(RoverName.ROVER_02, new Coord(2,1));
-//		roverHash.put(RoverName.ROVER_03, new Coord(3,1));
+		roverHash.put(RoverName.ROVER_03, new Coord(3,1));
 //		roverHash.put(RoverName.ROVER_04, new Coord(4,1));
 //		roverHash.put(RoverName.ROVER_05, new Coord(5,1));
 //		roverHash.put(RoverName.ROVER_06, new Coord(6,1));
