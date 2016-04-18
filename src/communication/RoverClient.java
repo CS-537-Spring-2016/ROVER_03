@@ -5,13 +5,18 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Scanner;
 
+
+// NOTE: Might need to send request back to client...
 public class RoverClient implements Runnable{
+	private List<Thread> threads;
 	private String roverName;
 	private Scanner in;
 	private Socket socket;
-	private PrintWriter output;
+	private static PrintWriter output;
 	private BufferedReader input;
 
 	public RoverClient(Socket socket, String name) throws IOException{
@@ -20,12 +25,13 @@ public class RoverClient implements Runnable{
 		in = new Scanner(System.in); // Most likely wont need this but just going to use scanner for testing purposes
 		input = new BufferedReader(new InputStreamReader(this.socket.getInputStream()));
 		output = new PrintWriter(this.socket.getOutputStream(), true);
+		threads = new ArrayList<>();
 	} 
 
 	@Override
 	public void run() {
 		//while(true){
-			new Thread(new Runnable(){
+			threads.add(new Thread(new Runnable(){
 				@Override
 				public void run() {
 					while(true)
@@ -41,9 +47,11 @@ public class RoverClient implements Runnable{
 				public void send(){
 					send(roverName + ": " + in.nextLine());
 				}
-			}).start();
+			}));
+			
+			threads.get(0).start();
 
-			new Thread(new Runnable(){
+			threads.add(new Thread(new Runnable(){
 				@Override
 				public void run() {
 					try {
@@ -59,9 +67,18 @@ public class RoverClient implements Runnable{
 					if((message = input.readLine()) != null)
 						System.out.println(message);
 				}
-			}).start();
+			}));
+			threads.get(1).start();
 
 		//}
+	}
+	
+	public String getRoverName() {
+		return roverName;
+	}
+
+	public Thread getOutThread(){
+		return threads.get(0);
 	}
 
 }
