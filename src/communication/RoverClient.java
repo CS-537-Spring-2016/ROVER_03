@@ -8,13 +8,15 @@ import java.net.Socket;
 import java.util.Scanner;
 
 public class RoverClient implements Runnable{
+	private String roverName;
 	private Scanner in;
 	private Socket socket;
 	private PrintWriter output;
 	private BufferedReader input;
 
-	public RoverClient(Socket socket) throws IOException{
+	public RoverClient(Socket socket, String name) throws IOException{
 		this.socket = socket;
+		roverName = name;
 		in = new Scanner(System.in); // Most likely wont need this but just going to use scanner for testing purposes
 		input = new BufferedReader(new InputStreamReader(this.socket.getInputStream()));
 		output = new PrintWriter(this.socket.getOutputStream(), true);
@@ -37,8 +39,7 @@ public class RoverClient implements Runnable{
 
 				// This will not be used either only for testing purposes
 				public void send(){
-					System.out.print("Message: ");
-					send(in.nextLine());
+					send(roverName + ": " + in.nextLine());
 				}
 			}).start();
 

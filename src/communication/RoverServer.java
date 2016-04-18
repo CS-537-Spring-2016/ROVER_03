@@ -5,6 +5,7 @@ import java.net.ServerSocket;
 
 public class RoverServer implements Runnable{
 	
+	private final static String NAME = "ROVER_03";
 	private final static int PORT = 8000;
 	private ServerSocket serverSocket;
 	
@@ -19,7 +20,7 @@ public class RoverServer implements Runnable{
 	public void run() {
 		while(true){
 			try {
-				Thread newThread = new Thread(new RoverClient(serverSocket.accept()));
+				Thread newThread = new Thread(new RoverClient(serverSocket.accept(), NAME));
 				newThread.start();
 			} catch (IOException e) {
 				e.printStackTrace();
