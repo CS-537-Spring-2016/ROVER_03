@@ -22,29 +22,46 @@ public class RoverClient implements Runnable{
 
 	@Override
 	public void run() {
-		while(true){
-			this.send();
-			try {
-				System.out.println(this.recv());
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}
+		//while(true){
+			new Thread(new Runnable(){
+				@Override
+				public void run() {
+					while(true)
+					send();	
+				}
+
+				// Will be used to send messages to other rovers
+				public void send(String message){
+					output.println(message);
+				}
+
+				// This will not be used either only for testing purposes
+				public void send(){
+					System.out.print("Message: ");
+					send(in.nextLine());
+				}
+			}).start();
+
+			new Thread(new Runnable(){
+				@Override
+				public void run() {
+					try {
+						while(true)
+						recv();
+					} catch (IOException e) {
+						e.printStackTrace();
+					}	
+				}
+
+				public void recv() throws IOException{
+					String message;
+					if((message = input.readLine()) != null)
+						System.out.println(message);
+				}
+			}).start();
+
+		//}
 	}
 
-	// Will be used to send messages to other rovers
-	public void send(String message){
-		output.println(message);
-	}
-
-	// This will not be used either only for testing purposes
-	public void send(){
-		System.out.print("Message: ");
-		send(in.nextLine());
-	}
-
-	public String recv() throws IOException{
-		return input.readLine();
-	}
 }
+
