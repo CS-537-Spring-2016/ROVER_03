@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
+import java.net.InetAddress;
 import java.net.Socket;
 import java.util.Scanner;
 
@@ -66,9 +67,12 @@ public class RoverClient implements Runnable{
 			System.out.println(input.readLine());
 	}
 	
-	public void connect(String ip, int port){
-		
+	public InetAddress getIP(){
+		return socket.getInetAddress();
 	}
-
+	
+	public int getPort(){
+		return socket.getPort();
+	}
 }
 

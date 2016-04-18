@@ -7,42 +7,30 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class RoverServer implements Runnable{
-
-	private List<RoverClient> rovers;
+	
+	// Rover name and listerning port
 	private final static String NAME = "ROVER_03";
 	private final static int PORT = 8000;
+	
+	// List of connected rovers
+	private List<RoverClient> rovers;
+	
+	
 	private ServerSocket serverSocket;
+	
+	// Will be used to get input from console
 	private InputStreamReader cin;
+	private StringBuilder message;
+	
 	public RoverServer() throws IOException{
-		// Creates a server socket
+		// Creates a server socket at specified port
 		serverSocket = new ServerSocket(PORT);
+		
 		System.out.println("ROVER_03 server online...");
 		System.out.println("Waiting for other rovers to connect...");
-		//InputStreamReader to read from console
+		
 		cin = new InputStreamReader(System.in);
 		rovers = new ArrayList<>();
-
-		new Thread(new Runnable(){
-			@Override
-			public void run() {
-				try {
-					while(true){
-						Thread.sleep(4000);
-						if(!rovers.isEmpty()){
-							System.out.println(rovers.size());// checking if they are actually connecting
-							while(cin.ready())
-								for(RoverClient r:rovers){
-									r.send((char)cin.read()+"");
-								}
-						}
-
-					}
-				} catch (IOException | InterruptedException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-			}
-		}).start();
 	}
 
 	@Override
@@ -53,9 +41,17 @@ public class RoverServer implements Runnable{
 				Thread newThread = new Thread(client);
 				rovers.add(client);
 				newThread.start();
+				getClientList();
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
+		}
+	}
+	
+	public  void getClientList(){
+		System.out.println("****************** Rover List **********************");
+		for(RoverClient r : rovers){
+			System.out.println("Address: " + r.getIP() + " , Port:" + r.getPort());
 		}
 	}
 
