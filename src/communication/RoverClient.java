@@ -18,7 +18,7 @@ public class RoverClient implements Runnable{
 
 	
 	public RoverClient(String ip, int port, String name) throws IOException{
-		this.socket = new Socket();
+		this.socket = new Socket(ip, port);
 		roverName = name;
 		in = new Scanner(System.in); // Most likely wont need this but just going to use scanner for testing purposes
 		input = new BufferedReader(new InputStreamReader(this.socket.getInputStream()));
