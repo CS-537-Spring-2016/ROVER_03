@@ -13,7 +13,7 @@ public class RoverClient{
 	private String roverName;
 	//private Scanner in;
 	private Socket socket;
-	private static PrintWriter output;
+	private PrintWriter output;
 	private BufferedReader input;
 
 
