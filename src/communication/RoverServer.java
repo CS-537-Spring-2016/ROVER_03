@@ -20,7 +20,7 @@ public class RoverServer implements Runnable{
 
 	// Will be used to get input from console
 	private InputStreamReader cin;
-	private StringBuilder message;
+	private StringBuilder message = new StringBuilder();
 
 	public RoverServer() throws IOException{
 		// Creates a server socket at specified port
@@ -31,7 +31,7 @@ public class RoverServer implements Runnable{
 
 		cin = new InputStreamReader(System.in);
 		rovers = new ArrayList<>();
-		
+
 		// Begin messaging thread
 		sendMessage();
 	}
@@ -53,17 +53,36 @@ public class RoverServer implements Runnable{
 		Thread messages = new Thread(){
 			public void run(){
 				while(true){
-					if(!rovers.isEmpty()){
-						try {
-							while(cin.ready()){
-								message.append((char)cin.read());
+					//					try {
+					//						if(cin.ready()){
+					//							System.out.println((char)cin.read());
+					//						}
+					//					} catch (IOException e1) {
+					//						// TODO Auto-generated catch block
+					//						e1.printStackTrace();
+					//					}
+
+					try {
+						//						System.out.println(cin.ready());
+						//						Thread.sleep(5000);
+						if(cin.ready())
+							if(!rovers.isEmpty()){
+
+								while(cin.ready()){
+									message.append((char)cin.read());
+									System.out.println(cin.ready());
+								}
+
+								for(RoverClient r : rovers){
+									System.out.println(message.toString());
+									System.out.println("sending to " + r.getPort() + " message: " + message );
+									r.send(message.toString());
+								}
+								message.setLength(0); // Reset StringBuilder
 							}
-						} catch (IOException e) {
-							e.printStackTrace();
-						}
-						for(RoverClient r : rovers){
-							r.send(message.toString());
-						}
+					} catch (IOException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
 					}
 				}
 			}
