@@ -23,6 +23,23 @@ public class RoverClient{
 		//in = new Scanner(System.in); // Most likely wont need this but just going to use scanner for testing purposes
 		input = new BufferedReader(new InputStreamReader(this.socket.getInputStream()));
 		output = new PrintWriter(this.socket.getOutputStream(), true);
+		
+		Thread read = new Thread(){
+			public void run() {
+				while(true){
+					try {
+						if(input.ready())
+							System.out.println(input.readLine());
+					} catch (IOException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+
+				}
+			}
+		};
+		
+		read.start();
 	} 
 
 	public RoverClient(Socket socket, String name) throws IOException{
