@@ -17,7 +17,7 @@ public class RoverServer implements Runnable{
 	 * If this code is shared with a rovers in blue corporation this constant has to be changed
 	 * This port number only applies to ROVER_03
 	 */
-	private final static int PORT = 8000;
+	private final static int PORT = 9000;
 
 	private Rover rover;
 	
