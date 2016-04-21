@@ -7,7 +7,7 @@ import java.io.PrintWriter;
 import java.net.InetAddress;
 import java.net.Socket;
 
-/* Need to implement method that filters rovers by tool that is needed either to harvets or drill
+/* NOTE TO SELF: Need to implement method that filters rovers by tool that is needed either to harvets or drill
  * and another method that searches from that filtered list the closest rover to my location */
 
 public class RoverClient implements Runnable{
