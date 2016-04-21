@@ -22,9 +22,12 @@ public class ROVER_03{
 
 	private static final String ROVER_NAME = "ROVER_03";
 	private static final int SLEEP_TIME = 10000; // The higher this number is the smaller the number of request sent to server
+	private static final int WAIT_FOR_ROVERS = 20000; 
+
 
 	// port and ip for swarm server we will be connecting to ... change here if necessary 
-	private static final String SERVER_ADDRESS = "localhost";
+//	private static final String SERVER_ADDRESS = "localhost";
+	private static final String SERVER_ADDRESS = "192.168.1.206";
 	private static final int PORT_ADDRESS = 9537;
 
 	/*************************************************************************************************************************/
@@ -43,17 +46,16 @@ public class ROVER_03{
 	
 	private RoverServer server;
 
-	public ROVER_03() throws IOException {
+	public ROVER_03() throws IOException, InterruptedException {
 		rover = new Rover(ROVER_NAME);
-		System.out.println(ROVER_NAME + " rover object constructed");
 		server = new RoverServer(rover);
-		new Thread(new RoverServer(rover)).start();
+		new Thread(server).start();
+		Thread.sleep(WAIT_FOR_ROVERS);    // Make thread sleep until all rovers have connected
 	}
 
 	// Starts rover
 	@SuppressWarnings("resource")
 	private void start() throws IOException, InterruptedException {
-
 		// Make connection and initialize streams
 		Socket socket = new Socket(SERVER_ADDRESS, PORT_ADDRESS); // set port here
 		in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
