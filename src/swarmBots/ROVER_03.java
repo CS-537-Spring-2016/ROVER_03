@@ -77,9 +77,9 @@ public class ROVER_03{
 		rover.setTool(equipment.get(1));
 		rover.setTool(equipment.get(2));
 		rover.setDriveType(equipment.get(0));
-
-		getLocation(rover.getName() + " currentLoc at start: ");
+		
 		System.out.println("ROVER_03 equipment list " + equipment + "\n");
+		getLocation(rover.getName() + " currentLoc at start: ");
 
 		/******** Rover logic *********/		
 		// Cardinals directions will be used when rover starts moving
