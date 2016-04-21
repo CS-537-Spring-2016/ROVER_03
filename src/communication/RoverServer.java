@@ -6,17 +6,21 @@ import java.net.ServerSocket;
 import java.util.ArrayList;
 import java.util.List;
 
+import model.Rover;
 
-/* NOTE TO SELF: Still need to implement method to reconnected to a rover if connection is lost.*/
+
+/* NOTE TO SELF: Still need to implement method to reconnected to a rover if connection is lost.
+ * Also make sure to send rover name list of tools and drive type to clients that connect to you.*/
 public class RoverServer implements Runnable{
 
 	/* Rover name and listerning port
-	 * If this code is shared with a rovers in blue corporation these two constants have to be changed
-	 * These only apply to ROVER_03
+	 * If this code is shared with a rovers in blue corporation this constant has to be changed
+	 * This port number only applies to ROVER_03
 	 */
-	private final static String NAME = "ROVER_03";
 	private final static int PORT = 8000;
 
+	private Rover rover;
+	
 	// List of connected rovers
 	private List<RoverClient> rovers;
 
@@ -26,11 +30,11 @@ public class RoverServer implements Runnable{
 	private InputStreamReader cin;
 	private StringBuilder message = new StringBuilder();
 
-	public RoverServer() throws IOException{
+	public RoverServer(Rover rover) throws IOException{
 		// Creates a server socket at specified port and binds it to a specified port and address of local machine
 		serverSocket = new ServerSocket(PORT);
-
-		System.out.println(NAME + " server online...");
+		this.rover = rover;
+		System.out.println(this.rover.getName() + " server online...");
 		System.out.println("Waiting for other rovers to connect...");
 
 		/* instatiates input stream reader object that will be used to capture any input written on the console.
@@ -50,7 +54,7 @@ public class RoverServer implements Runnable{
 	public void run() {	// Thread that continously listens for incoming connections
 		while(true){
 			try {
-				RoverClient client = new RoverClient(serverSocket.accept(), NAME);
+				RoverClient client = new RoverClient(serverSocket.accept(), rover.getName());
 				rovers.add(client);
 				new Thread(client).start(); // instantiates and starts a new thread for a connecting client
 			} catch (IOException e) {
