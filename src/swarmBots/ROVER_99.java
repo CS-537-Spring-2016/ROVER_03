@@ -14,7 +14,9 @@ import com.google.gson.reflect.TypeToken;
 import common.Coord;
 import common.MapTile;
 import common.ScanMap;
+import communication.RoverServer2;
 import enums.Terrain;
+import model.Rover;
 
 /**
  * The seed that this program is built on is a chat program example found here:
@@ -27,16 +29,32 @@ public class ROVER_99 {
 	BufferedReader in;
 	PrintWriter out;
 	String rovername;
+	RoverServer2 server;
 	ScanMap scanMap;
 	int sleepTime;
 	String SERVER_ADDRESS = "localhost";
 	static final int PORT_ADDRESS = 9537;
+	private Rover rover;
+	static final int WAIT_FOR_ROVERS = 9537;
 
-	public ROVER_99() {
+	public ROVER_99() throws InterruptedException, IOException {
 		// constructor
 		System.out.println("ROVER_99 rover object constructed");
 		rovername = "ROVER_99";
 		SERVER_ADDRESS = "localhost";
+		rover = new Rover(rovername);
+		server = new RoverServer2(rover);
+		new Thread(server).start();
+		server.connectTo("192.168.1.207", 9000);
+		
+		/****** Testing to see if other rover gets there locations *************/
+		server.sendLOC("LOC 45 65 0");
+		server.sendLOC("LOC 50 65 0");
+		server.sendLOC("LOC 46 65 0");
+		server.sendLOC("LOC 65 65 0");
+		/**********************************************************************/
+		
+		Thread.sleep(WAIT_FOR_ROVERS);    // Make thread sleep until all rovers have connected
 		// this should be a safe but slow timer value
 		sleepTime = 300; // in milliseconds - smaller is faster, but the server will cut connection if it is too small
 	}
