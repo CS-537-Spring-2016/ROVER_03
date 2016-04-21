@@ -13,6 +13,7 @@ import com.google.gson.reflect.TypeToken;
 
 import common.Coord;
 import common.ScanMap;
+import communication.RoverServer;
 import model.Rover;
 
 public class ROVER_03{
@@ -39,10 +40,14 @@ public class ROVER_03{
 	private Coord previousLoc;
 	private Coord currentLoc;
 	private String results = "";
+	
+	private RoverServer server;
 
-	public ROVER_03() {
+	public ROVER_03() throws IOException {
 		rover = new Rover(ROVER_NAME);
 		System.out.println(ROVER_NAME + " rover object constructed");
+		server = new RoverServer(rover);
+		new Thread(new RoverServer(rover)).start();
 	}
 
 	// Starts rover
