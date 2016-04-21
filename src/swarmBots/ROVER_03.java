@@ -13,25 +13,41 @@ import com.google.gson.reflect.TypeToken;
 
 import common.Coord;
 import common.ScanMap;
+import model.Rover;
 
 public class ROVER_03{
-	
-	// Line 16 to 32 don't need to be changed, got these from sample rovers
-	BufferedReader in;
-	PrintWriter out;
-	String rovername;
-	ScanMap scanMap;
-	int sleepTime;
-	String SERVER_ADDRESS = "localhost";
-	static final int PORT_ADDRESS = 9537;
+
+	/********************************************* Rover Constants ************************************************************/
+
+	private static final String ROVER_NAME = "ROVER_03";
+	private static final int SLEEP_TIME = 10000; // The higher this number is the smaller the number of request sent to server
+
+	// port and ip for swarm server we will be connecting to ... change here if necessary 
+	private static final String SERVER_ADDRESS = "localhost";
+	private static final int PORT_ADDRESS = 9537;
+
+	/*************************************************************************************************************************/
+
+	// Buffered Reader used to receive responses from server, Print Writer used to send request to server
+	private BufferedReader in;
+	private PrintWriter out;
+
+	private ScanMap scanMap;
+
+	private Rover rover;
+
+	private Coord previousLoc;
+	private Coord currentLoc;
+	private String results = "";
 
 	public ROVER_03() {
-		System.out.println("ROVER_03 rover object constructed");
-		rovername = "ROVER_03";
-		SERVER_ADDRESS = "localhost";
-		sleepTime = 10000;	// Changed sleep time to decrease number of request sent to server but will have to modify this
+		rover = new Rover(ROVER_NAME);
+		System.out.println(ROVER_NAME + " rover object constructed");
+
 	}
-	
+
+	// Starts rover
+	@SuppressWarnings("resource")
 	private void start() throws IOException, InterruptedException {
 
 		// Make connection and initialize streams
@@ -44,158 +60,140 @@ public class ROVER_03{
 		while (true) {
 			String line = in.readLine();
 			if (line.startsWith("SUBMITNAME")) {
-				out.println(rovername); /* This sets the name of this instance
-										 * of a swarmBot for identifying the
-										 *thread to the server*/
+				out.println(ROVER_NAME); /* This sets the name of this instance of a swarmBot for identifying the thread to the server*/
 				break;
 			}
 		}
 
-		// ******** Rover logic *********
-		// We do not need a stuck boolean because we have threads and will not get stuck on anything
-		
-		String line = "";
-		boolean blocked = false;
+		/**** get equipment listing including drive type ****/			
+		ArrayList<String> equipment = new ArrayList<String>();
+		equipment = getEquipment();
+		rover.setTool(equipment.get(1));
+		rover.setTool(equipment.get(2));
+		rover.setDriveType(equipment.get(0));
 
-		String[] cardinals = {"N", "E", "S", "W"};
+		getLocation(rover.getName() + " currentLoc at start: ");
+		System.out.println("ROVER_03 equipment list " + equipment + "\n");
 
-		String currentDir = null;
-		Coord currentLoc = null;
-		Coord previousLoc = null;
+		/******** Rover logic *********/		
+		// Cardinals directions will be used when rover starts moving
+		//String[] cardinals = {"N", "E", "S", "W"};
 
 		// start Rover controller process
-		while (true) {		
-			
-			// **** location call ****
-			out.println("LOC");
-			line = in.readLine();
-            if (line == null) {
-            	System.out.println("ROVER_03 check connection to server");
-            	line = "";
-            }
-			if (line.startsWith("LOC")) {
-				// loc = line.substring(4);
-				currentLoc = extractLOC(line);
-			}
-			if(!currentLoc.equals(previousLoc)){
-			System.out.println("ROVER_03 currentLoc at start: " + currentLoc);
-			
-			// after getting location set previous equal current to be able to check for stuckness and blocked later
-			previousLoc = currentLoc;
-				
-			// **** get equipment listing ****			
-			ArrayList<String> equipment = new ArrayList<String>();
-			equipment = getEquipment();
-			//System.out.println("ROVER_03 equipment list results drive " + equipment.get(0));
-			System.out.println("ROVER_03 equipment list results " + equipment + "\n");
-	
-			// ***** do a SCAN *****
-			//System.out.println("ROVER_03 sending SCAN request");
-			this.doScan();
-			scanMap.debugPrintMap();
-			System.out.println("ROVER_03 ------------ bottom process control --------------"); 
-			}
-
-			Thread.sleep(sleepTime); // We need to have thread sleep until signal is received from another rover ****
+		while (true) {	
+			getLocation(rover.getName() + " currentLoc: ");
+			Thread.sleep(SLEEP_TIME); // We need to have thread sleep until signal is received from another rover ****
 		}
-		
+
 
 
 	}
-	
-	// ################ Support Methods ###########################
-	
-		private void clearReadLineBuffer() throws IOException{
-			while(in.ready()){
-				//System.out.println("ROVER_03 clearing readLine()");
-				String garbage = in.readLine();	
-			}
-		}
-		
 
-		// method to retrieve a list of the rover's equipment from the server
-		private ArrayList<String> getEquipment() throws IOException {
-			//System.out.println("ROVER_03 method getEquipment()");
-			Gson gson = new GsonBuilder().setPrettyPrinting().create();
-			out.println("EQUIPMENT");
-			
-			String jsonEqListIn = in.readLine(); //grabs the string that was returned first
-			if(jsonEqListIn == null){
-				jsonEqListIn = "";
-			}
-			StringBuilder jsonEqList = new StringBuilder();
-			//System.out.println("ROVER_03 incomming EQUIPMENT result - first readline: " + jsonEqListIn);
-			
-			if(jsonEqListIn.startsWith("EQUIPMENT")){
+	// displays current location and map on console only if location has changed
+	private void getLocation(String displayMessage) throws IOException, InterruptedException{
+		// **** location call ****
+		out.println("LOC");
+		results = in.readLine();
+		if (results == null) {
+			System.out.println(rover.getName() + " check connection to server");
+			results = "";
+		}
+		if (results.startsWith("LOC")) {
+			currentLoc = extractLOC(results);
+		}
+		if(!currentLoc.equals(previousLoc)){
+			System.out.println(displayMessage + currentLoc);
+
+			// after getting location set previous equal current to be able to check for stuckness and blocked later
+			previousLoc = currentLoc;
+
+			// ***** do a SCAN *****
+			this.doScan();
+			scanMap.debugPrintMap();
+			System.out.println(rover.getName() + " ------------ bottom process control --------------"); 
+		}
+	}
+
+	/************************* Support Methods *****************************/
+
+	private void clearReadLineBuffer() throws IOException{
+		while(in.ready()){
+			in.readLine();	
+		}
+	}
+
+
+	// method to retrieve a list of the rover's equipment from the server
+	private ArrayList<String> getEquipment() throws IOException {
+		Gson gson = new GsonBuilder().setPrettyPrinting().create();
+		out.println("EQUIPMENT");
+
+		String jsonEqListIn = in.readLine(); //grabs the string that was returned first
+		if(jsonEqListIn == null){
+			jsonEqListIn = "";
+		}
+		StringBuilder jsonEqList = new StringBuilder();
+		if(jsonEqListIn.startsWith("EQUIPMENT")){
 				while (!(jsonEqListIn = in.readLine()).equals("EQUIPMENT_END")) {
-					if(jsonEqListIn == null){
+					if(jsonEqListIn == null)
 						break;
-					}
-					//System.out.println("ROVER_03 incomming EQUIPMENT result: " + jsonEqListIn);
 					jsonEqList.append(jsonEqListIn);
 					jsonEqList.append("\n");
-					//System.out.println("ROVER_03 doScan() bottom of while");
 				}
-			} else {
-				// in case the server call gives unexpected results
-				clearReadLineBuffer();
-				return null; // server response did not start with "EQUIPMENT"
-			}
-			
-			String jsonEqListString = jsonEqList.toString();		
-			ArrayList<String> returnList;		
-			returnList = gson.fromJson(jsonEqListString, new TypeToken<ArrayList<String>>(){}.getType());		
-			//System.out.println("ROVER_03 returnList " + returnList);
-			
-			return returnList;
+
+		} else {
+			// in case the server call gives unexpected results
+			clearReadLineBuffer();
+			return null; // server response did not start with "EQUIPMENT"
 		}
-		
+		String jsonEqListString = jsonEqList.toString();		
+		ArrayList<String> returnList;		
+		returnList = gson.fromJson(jsonEqListString, new TypeToken<ArrayList<String>>(){}.getType());		
 
-		// sends a SCAN request to the server and puts the result in the scanMap array
-		public void doScan() throws IOException {
-			//System.out.println("ROVER_03 method doScan()");
-			Gson gson = new GsonBuilder().setPrettyPrinting().create();
-			out.println("SCAN");
+		return returnList;
+	}
 
-			String jsonScanMapIn = in.readLine(); //grabs the string that was returned first
-			if(jsonScanMapIn == null){
-				System.out.println("ROVER_03 check connection to server");
-				jsonScanMapIn = "";
-			}
-			StringBuilder jsonScanMap = new StringBuilder();
-			System.out.println("ROVER_03 incomming SCAN result - first readline: " + jsonScanMapIn);
-			
-			if(jsonScanMapIn.startsWith("SCAN")){	
-				while (!(jsonScanMapIn = in.readLine()).equals("SCAN_END")) {
-					//System.out.println("ROVER_03 incomming SCAN result: " + jsonScanMapIn);
-					jsonScanMap.append(jsonScanMapIn);
-					jsonScanMap.append("\n");
-					//System.out.println("ROVER_03 doScan() bottom of while");
-				}
-			} else {
-				// in case the server call gives unexpected results
-				clearReadLineBuffer();
-				return; // server response did not start with "SCAN"
-			}
-			//System.out.println("ROVER_03 finished scan while");
 
-			String jsonScanMapString = jsonScanMap.toString();
-			// debug print json object to a file
-			//new MyWriter( jsonScanMapString, 0);  //gives a strange result - prints the \n instead of newline character in the file
+	// sends a SCAN request to the server and puts the result in the scanMap array
+	public void doScan() throws IOException {
+		Gson gson = new GsonBuilder().setPrettyPrinting().create();
+		out.println("SCAN");
 
-			//System.out.println("ROVER_03 convert from json back to ScanMap class");
-			// convert from the json string back to a ScanMap object
-			scanMap = gson.fromJson(jsonScanMapString, ScanMap.class);		
+		String jsonScanMapIn = in.readLine(); //grabs the string that was returned first
+		if(jsonScanMapIn == null){
+			System.out.println(rover.getName() + " check connection to server");
+			jsonScanMapIn = "";
 		}
-		
+		StringBuilder jsonScanMap = new StringBuilder();
+		System.out.println(rover.getName() + " incomming SCAN result - first readline: " + jsonScanMapIn);
 
-		/* this takes the LOC response string, parses out the x and x values and returns a Coord 
-		 * object */
-		public static Coord extractLOC(String sStr) {
-				String[] coordinates = sStr.split(" ");
-				return new Coord(Integer.parseInt(coordinates[1].trim()), Integer.parseInt(coordinates[2].trim()));
+		if(jsonScanMapIn.startsWith("SCAN")){	
+			while (!(jsonScanMapIn = in.readLine()).equals("SCAN_END")) {
+				jsonScanMap.append(jsonScanMapIn);
+				jsonScanMap.append("\n");
+			}
+		} else {
+			// in case the server call gives unexpected results
+			clearReadLineBuffer();
+			return; // server response did not start with "SCAN"
 		}
-	
+
+		String jsonScanMapString = jsonScanMap.toString();
+		// debug print json object to a file
+		//new MyWriter( jsonScanMapString, 0);  //gives a strange result - prints the \n instead of newline character in the file
+
+		// convert from the json string back to a ScanMap object
+		scanMap = gson.fromJson(jsonScanMapString, ScanMap.class);		
+	}
+
+
+	/* this takes the LOC response string, parses out the x and x values and returns a Coord 
+	 * object */
+	public static Coord extractLOC(String sStr) {
+		String[] coordinates = sStr.split(" ");
+		return new Coord(Integer.parseInt(coordinates[1].trim()), Integer.parseInt(coordinates[2].trim()));
+	}
+
 	public static void main(String args[]) throws IOException, InterruptedException{
 		ROVER_03 client = new ROVER_03();
 		client.start();
