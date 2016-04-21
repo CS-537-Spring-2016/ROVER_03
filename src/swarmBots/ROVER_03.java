@@ -43,7 +43,6 @@ public class ROVER_03{
 	public ROVER_03() {
 		rover = new Rover(ROVER_NAME);
 		System.out.println(ROVER_NAME + " rover object constructed");
-
 	}
 
 	// Starts rover
