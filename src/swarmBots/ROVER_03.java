@@ -22,7 +22,7 @@ import enums.Terrain;
  * is because in order to communicate with the other rovers in blue corporation 
  * we will most likely need to create a P2P network connection between the rovers
  * */
-public class ROVER_03 implements Runnable {
+public class ROVER_03  {
 
 	// Line 16 to 32 don't need to be changed, got these from sample rovers
 	BufferedReader in;
@@ -101,7 +101,7 @@ public class ROVER_03 implements Runnable {
 				// loc = line.substring(4);
 				currentLoc = extractLOC(line);
 			}
-			System.out.println("ROVER_00 currentLoc at start: " + currentLoc);
+			System.out.println("ROVER_03 currentLoc at start: " + currentLoc);
 
 			// after getting location set previous equal current to be able to
 			// check for stuckness and blocked later
@@ -112,7 +112,7 @@ public class ROVER_03 implements Runnable {
 			equipment = getEquipment();
 			// System.out.println("ROVER_00 equipment list results drive " +
 			// equipment.get(0));
-			System.out.println("ROVER_00 equipment list results " + equipment + "\n");
+			System.out.println("ROVER_03 equipment list results " + equipment + "\n");
 
 			// ***** do a SCAN *****
 			// System.out.println("ROVER_00 sending SCAN request");
@@ -293,6 +293,7 @@ public class ROVER_03 implements Runnable {
 
 	// this takes the LOC response string, parses out the x and x values and
 	// returns a Coord object
+	
 	public static Coord extractLOC(String sStr) {
 		sStr = sStr.substring(4);
 		if (sStr.lastIndexOf(" ") != -1) {
@@ -311,9 +312,5 @@ public class ROVER_03 implements Runnable {
 		client.start();
 	}
 
-	@Override
-	public void run() {
-		// TODO Auto-generated method stub
-
-	}
+	
 }
