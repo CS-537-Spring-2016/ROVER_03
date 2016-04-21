@@ -14,13 +14,7 @@ import com.google.gson.reflect.TypeToken;
 import common.Coord;
 import common.ScanMap;
 
-/*
- * This is just an idea for the moment but ROVER_03 might have to implement
- * runnable in order to allow for multithreading. The reason we might need this 
- * is because in order to communicate with the other rovers in blue corporation 
- * we will most likely need to create a P2P network connection between the rovers.
- * */
-public class ROVER_03 implements Runnable {
+public class ROVER_03{
 	
 	// Line 16 to 32 don't need to be changed, got these from sample rovers
 	BufferedReader in;
@@ -195,29 +189,15 @@ public class ROVER_03 implements Runnable {
 		}
 		
 
-		// this takes the LOC response string, parses out the x and x values and
-		// returns a Coord object
+		/* this takes the LOC response string, parses out the x and x values and returns a Coord 
+		 * object */
 		public static Coord extractLOC(String sStr) {
-			sStr = sStr.substring(4);
-			if (sStr.lastIndexOf(" ") != -1) {
-				String xStr = sStr.substring(0, sStr.lastIndexOf(" "));
-				//System.out.println("extracted xStr " + xStr);
-
-				String yStr = sStr.substring(sStr.lastIndexOf(" ") + 1);
-				//System.out.println("extracted yStr " + yStr);
-				return new Coord(Integer.parseInt(xStr), Integer.parseInt(yStr));
-			}
-			return null;
+				String[] coordinates = sStr.split(" ");
+				return new Coord(Integer.parseInt(coordinates[1].trim()), Integer.parseInt(coordinates[2].trim()));
 		}
 	
 	public static void main(String args[]) throws IOException, InterruptedException{
 		ROVER_03 client = new ROVER_03();
 		client.start();
-	}
-
-	@Override
-	public void run() {
-		// TODO Auto-generated method stub
-		
 	}
 }
