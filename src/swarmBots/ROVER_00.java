@@ -54,6 +54,7 @@ public class ROVER_00 {
 	/**
 	 * Connects to the server then enters the processing loop.
 	 */
+	@SuppressWarnings("resource")
 	private void run() throws IOException, InterruptedException {
 
 		// Make connection and initialize streams
