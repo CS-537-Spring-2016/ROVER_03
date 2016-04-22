@@ -18,11 +18,16 @@ import communication.RoverServer2;
 import enums.Terrain;
 import model.Rover;
 
+
+//Making an addition to this file to check whether a remote alternat push will change it
+
+// rearanged the 2nd and 3rd line in the following comment
+
 /**
  * The seed that this program is built on is a chat program example found here:
- * http://cs.lmu.edu/~ray/notes/javanetexamples/ Many thanks to the authors for
  * publishing their code examples
- */	
+ * * http://cs.lmu.edu/~ray/notes/javanetexamples/ Many thanks to the authors for
+ */
 
 public class ROVER_99 {
 
