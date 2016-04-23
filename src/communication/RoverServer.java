@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import model.Rover;
+import model.RoverQueue;
 
 
 /* NOTE TO SELF: Still need to implement method to reconnected to a rover if connection is lost.
@@ -18,7 +19,9 @@ public class RoverServer implements Runnable{
 	 * This port number only applies to ROVER_03
 	 */
 	private final static int PORT = 9000;
-
+	
+	private RoverQueue roverqueue;
+	
 	private Rover rover;
 	
 	// List of connected rovers
