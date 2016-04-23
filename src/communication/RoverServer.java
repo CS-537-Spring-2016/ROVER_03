@@ -20,7 +20,7 @@ public class RoverServer implements Runnable{
 	 */
 	private final static int PORT = 9000;
 	
-	private RoverQueue roverqueue;
+	private RoverQueue roverQueue;
 	
 	private Rover rover;
 	
@@ -112,6 +112,8 @@ public class RoverServer implements Runnable{
 	public void sendLOC(String location){
 		int index = getIndex(location);
 		rovers.get(index).send(getLocation(location));
+		roverQueue.addLocation(getLocation(location));
+		roverQueue.displayLocation();
 	}
 	
 	private int getIndex(String location){

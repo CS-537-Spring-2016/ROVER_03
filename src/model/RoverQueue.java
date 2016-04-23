@@ -13,6 +13,12 @@ public class RoverQueue {
 	public void addLocation (String location){
 		locationList.add(location);
 	}
-	
+	public void displayLocation(){
+		for(String str: locationList)
+		{
+			System.out.println(str);
+		}
+		
+	}
 	
 }
