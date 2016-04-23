@@ -7,6 +7,8 @@ import java.io.PrintWriter;
 import java.net.InetAddress;
 import java.net.Socket;
 
+import model.RoverQueue;
+
 /* NOTE TO SELF: Need to implement method that filters rovers by tool that is needed either to harvets or drill
  * and another method that searches from that filtered list the closest rover to my location */
 
@@ -15,15 +17,17 @@ public class RoverClient implements Runnable{
 	private Socket socket;
 	private PrintWriter output;
 	private BufferedReader input;
+	private RoverQueue queue;
 
 	/* This constructor will be used when you want to send a request to establish a connection,
 	 * unlike the other constructor in this class you create the socket in the constructor
 	 * to try to extablish a connection with another rover using the destination IP and 
 	 * destination port.
 	 * */
-	public RoverClient(String ip, int port, String name) throws IOException{
+	public RoverClient(String ip, int port, String name, RoverQueue queue) throws IOException{
 
 		this.socket = new Socket(ip, port);
+		this.queue = queue;
 		roverName = name;
 	} 
 
@@ -33,9 +37,10 @@ public class RoverClient implements Runnable{
 	 * this constructor you are just storing a reference to the socket that was created
 	 * by using serverSocket.accept() in the RoverServer class.
 	 * */
-	public RoverClient(Socket socket, String name) throws IOException{
+	public RoverClient(Socket socket, String name, RoverQueue queue) throws IOException{
 
 		this.socket = socket;
+		this.queue = queue;
 		roverName = name;
 
 	} 
@@ -76,7 +81,7 @@ public class RoverClient implements Runnable{
 		while(true){
 			try {
 				if(input.ready())
-					System.out.println(input.readLine());
+					queue.addLocation(input.readLine());
 			} catch (IOException e) {
 				e.printStackTrace();
 			}

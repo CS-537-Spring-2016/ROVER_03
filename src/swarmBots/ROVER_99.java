@@ -50,7 +50,7 @@ public class ROVER_99 {
 		rover = new Rover(rovername);
 		server = new RoverServer2(rover);
 		new Thread(server).start();
-		server.connectTo("192.168.1.207", 9000);
+		server.connectTo(SERVER_ADDRESS, 9000);
 		
 		/****** Testing to see if other rover gets there locations *************/
 		server.sendLOC("LOC 45 65 0");

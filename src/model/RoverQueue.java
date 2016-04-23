@@ -6,7 +6,7 @@ import java.util.List;
 public class RoverQueue {
 	List<String> locationList = new ArrayList<String>();
 	
-	RoverQueue(){
+	public RoverQueue(){
 		
 	}
 	
