@@ -36,6 +36,7 @@ public class RoverServer implements Runnable{
 	public RoverServer(Rover rover) throws IOException{
 		// Creates a server socket at specified port and binds it to a specified port and address of local machine
 		serverSocket = new ServerSocket(PORT);
+		roverQueue = new RoverQueue();
 		this.rover = rover;
 		System.out.println(this.rover.getName() + " server online...");
 		System.out.println("Waiting for other rovers to connect...");
@@ -57,7 +58,7 @@ public class RoverServer implements Runnable{
 	public void run() {	// Thread that continously listens for incoming connections
 		while(true){
 			try {
-				RoverClient client = new RoverClient(serverSocket.accept(), rover.getName());
+				RoverClient client = new RoverClient(serverSocket.accept(), rover.getName(), roverQueue);
 				rovers.add(client);
 				new Thread(client).start(); // instantiates and starts a new thread for a connecting client
 			} catch (IOException e) {
@@ -65,6 +66,12 @@ public class RoverServer implements Runnable{
 			}
 		}
 	}
+	
+	
+	// Will be used in ROVER_03 class to check if Rover Queue is empty
+	//public void emptyQueue(){
+	//	roverqueue
+	//}
 
 	/* This method sends messages that are written on the console to all rovers connected
 	 * how ever again this thread will not be needed for the final implementation and is only for 

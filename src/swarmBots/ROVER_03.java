@@ -26,8 +26,8 @@ public class ROVER_03{
 
 
 	// port and ip for swarm server we will be connecting to ... change here if necessary 
-//	private static final String SERVER_ADDRESS = "localhost";
-	private static final String SERVER_ADDRESS = "192.168.1.206";
+	private static final String SERVER_ADDRESS = "localhost";
+	//private static final String SERVER_ADDRESS = "192.168.1.206";
 	private static final int PORT_ADDRESS = 9537;
 
 	/*************************************************************************************************************************/

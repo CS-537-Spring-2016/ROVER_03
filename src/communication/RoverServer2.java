@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import model.Rover;
+import model.RoverQueue;
 
 
 /* NOTE TO SELF: Still need to implement method to reconnected to a rover if connection is lost.
@@ -20,7 +21,8 @@ public class RoverServer2 implements Runnable{
 	private final static int PORT = 9001;
 
 	private Rover rover;
-	
+	private RoverQueue roverQueue;
+
 	// List of connected rovers
 	private List<RoverClient> rovers;
 
@@ -33,6 +35,7 @@ public class RoverServer2 implements Runnable{
 	public RoverServer2(Rover rover) throws IOException{
 		// Creates a server socket at specified port and binds it to a specified port and address of local machine
 		serverSocket = new ServerSocket(PORT);
+		roverQueue = new RoverQueue();
 		this.rover = rover;
 		System.out.println(this.rover.getName() + " server online...");
 		System.out.println("Waiting for other rovers to connect...");
@@ -51,7 +54,7 @@ public class RoverServer2 implements Runnable{
 	}
 	
 	public void connectTo(String IP, int port) throws IOException, InterruptedException{
-		RoverClient client = new RoverClient(IP, port, rover.getName());
+		RoverClient client = new RoverClient(IP, port, rover.getName(), roverQueue);
 		rovers.add(client);
 		new Thread(client).start();
 		Thread.sleep(10000); /* Need to wait until rover establishes a connection before doing anything else like sending a message
@@ -62,7 +65,7 @@ public class RoverServer2 implements Runnable{
 	public void run() {	// Thread that continously listens for incoming connections
 		while(true){
 			try {
-				RoverClient client = new RoverClient(serverSocket.accept(), rover.getName());
+				RoverClient client = new RoverClient(serverSocket.accept(), rover.getName(),roverQueue);
 				rovers.add(client);
 				new Thread(client).start(); // instantiates and starts a new thread for a connecting client
 			} catch (IOException e) {
