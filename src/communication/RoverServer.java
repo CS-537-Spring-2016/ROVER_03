@@ -147,4 +147,8 @@ public class RoverServer implements Runnable{
 			System.out.println("Address: " + r.getIP() + " , Port:" + r.getPort());
 		}
 	}
+	
+	public RoverQueue getQueue(){
+		return roverQueue;
+	}
 }
