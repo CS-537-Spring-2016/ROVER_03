@@ -76,7 +76,7 @@ public class RoverClient implements Runnable{
 		}
 
 		// Sends message to other rover so they know a connection has been extablished
-		send("You are now connected to " + roverName);
+		//send("You are now connected to " + roverName); CAUSES AN ISSUE NEED TO FIX THIS
 
 		while(true){
 			try {

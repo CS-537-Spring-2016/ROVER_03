@@ -7,7 +7,7 @@ public class RoverQueue {
 	List<String> locationList = new ArrayList<String>();
 	
 	public RoverQueue(){
-		locationList.add("LOC 45 20");
+		//locationList.add("LOC 45 20");
 	}
 	
 	public void addLocation (String location){

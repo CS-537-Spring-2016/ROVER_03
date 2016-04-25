@@ -96,11 +96,11 @@ public class ROVER_03{
 			getLocation(rover.getName() + " currentLoc: ");
 			//Thread.sleep(SLEEP_TIME); // We need to have thread sleep until signal is received from another rover ****
 			System.out.print("Going to this location: ");
-			server.roverQueue.displayLocation();
 			
 			/************************* MOVEMENT FOR TESTING OF COMMUNICATION*************************************************/
 					
 			if(!server.getQueue().isEmpty())
+				server.roverQueue.displayLocation();
 				roverTracker.setStartingPoint(currentLoc);
 				roverTracker.setDestination(extractLOC(server.getQueue().getJob()));
 				roverTracker.setDistanceTracker();

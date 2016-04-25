@@ -13,7 +13,7 @@ import com.google.gson.reflect.TypeToken;
 
 import common.Coord;
 import common.ScanMap;
-import communication.RoverServer;
+import communication.RoverServer2;
 import model.Rover;
 
 public class ROVER_110{
@@ -43,13 +43,19 @@ public class ROVER_110{
 	private Coord currentLoc;
 	private String results = "";
 	
-	private RoverServer server;
+	private RoverServer2 server;
 
 	public ROVER_110() throws IOException, InterruptedException {
 		rover = new Rover(ROVER_NAME);
-		server = new RoverServer(rover);
+		server = new RoverServer2(rover);
 		new Thread(server).start();
+		server.connectTo("127.0.0.1", 9000);
+		/****** Testing to see if other rover gets there locations *************/
+		server.sendLOC("LOC 45 20 0");
+		/**********************************************************************/
+		
 		Thread.sleep(WAIT_FOR_ROVERS);    // Make thread sleep until all rovers have connected
+		// this should be a safe but slow timer value
 	}
 
 	// Starts rover

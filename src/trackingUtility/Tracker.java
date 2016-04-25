@@ -63,7 +63,7 @@ public class Tracker {
 	}
 	
 	public void updateYPos(int y){
-		distanceTracker.xpos += y; 
+		distanceTracker.ypos += y; 
 	}
 	
 	public boolean hasArrived(){
