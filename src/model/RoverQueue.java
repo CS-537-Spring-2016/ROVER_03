@@ -13,10 +13,15 @@ public class RoverQueue {
 	public void addLocation (String location){
 		locationList.add(location);
 	}
+	
+	//set CurrentLocation method
+	
+	//traverse the list for nearer locations and set as target location
+	
 	public void displayLocation(){
 		for(String str: locationList)
 		{
-			System.out.println(str);
+			System.out.println("Location from Rover:"+str);
 		}
 		
 	}

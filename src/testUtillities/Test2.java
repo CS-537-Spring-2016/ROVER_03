@@ -7,6 +7,6 @@ import communication.RoverClient;
 public class Test2 {
 
 	public static void main(String[] args) throws UnknownHostException, IOException {
-		new RoverClient("127.0.0.1", 8000,"ROVER_105");
+		new RoverClient("127.0.0.1", 8000,"ROVER_105",null);
 		}
 }
