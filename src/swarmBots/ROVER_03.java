@@ -12,9 +12,12 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 
 import common.Coord;
+import common.MapTile;
 import common.ScanMap;
 import communication.RoverServer;
+import enums.Terrain;
 import model.Rover;
+import trackingUtility.Tracker;
 
 public class ROVER_03{
 
@@ -36,6 +39,8 @@ public class ROVER_03{
 	private BufferedReader in;
 	private PrintWriter out;
 
+	private Tracker roverTracker;
+	
 	private ScanMap scanMap;
 
 	private Rover rover;
@@ -49,6 +54,7 @@ public class ROVER_03{
 	public ROVER_03() throws IOException, InterruptedException {
 		rover = new Rover(ROVER_NAME);
 		server = new RoverServer(rover);
+		roverTracker = new Tracker();
 		new Thread(server).start();
 		Thread.sleep(WAIT_FOR_ROVERS);    // Make thread sleep until all rovers have connected
 	}
@@ -83,13 +89,39 @@ public class ROVER_03{
 
 		/******** Rover logic *********/		
 		// Cardinals directions will be used when rover starts moving
-		//String[] cardinals = {"N", "E", "S", "W"};
+		String[] cardinals = {"N", "E", "S", "W"};
 
 		// start Rover controller process
 		while (true) {	
 			getLocation(rover.getName() + " currentLoc: ");
-			Thread.sleep(SLEEP_TIME); // We need to have thread sleep until signal is received from another rover ****
+			//Thread.sleep(SLEEP_TIME); // We need to have thread sleep until signal is received from another rover ****
+			System.out.print("Going to this location: ");
 			server.roverQueue.displayLocation();
+			
+			/************************* MOVEMENT FOR TESTING OF COMMUNICATION*************************************************/
+					
+			if(!server.getQueue().isEmpty())
+				roverTracker.setStartingPoint(currentLoc);
+				roverTracker.setDestination(extractLOC(server.getQueue().getJob()));
+				roverTracker.setDistanceTracker();
+				String startingDirection = (roverTracker.getDestination().xpos > 0)?"E":"W";
+				while(!roverTracker.hasArrived()){
+					if(roverTracker.getDistanceTracker().xpos <= 0){
+						out.println("MOVE S");
+						roverTracker.updateYPos(-1);
+						Thread.sleep(1100);
+						System.out.println(roverTracker.getDistanceTracker().ypos);
+					}
+					else{
+					out.println("MOVE " + startingDirection);
+					roverTracker.updateXPos(-1);
+					Thread.sleep(1100);
+					System.out.println(roverTracker.getDistanceTracker().xpos);
+					}
+				}
+				server.getQueue().removeCompletedJob();
+			
+			/************************* MOVEMENT FOR TESTING OF COMMUNICATION*************************************************/
 		}
 
 
