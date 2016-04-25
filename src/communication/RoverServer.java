@@ -20,7 +20,7 @@ public class RoverServer implements Runnable{
 	 */
 	private final static int PORT = 9000;
 	
-	private RoverQueue roverQueue;
+	public RoverQueue roverQueue;
 	
 	private Rover rover;
 	

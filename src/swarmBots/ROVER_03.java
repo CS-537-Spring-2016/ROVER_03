@@ -89,6 +89,7 @@ public class ROVER_03{
 		while (true) {	
 			getLocation(rover.getName() + " currentLoc: ");
 			Thread.sleep(SLEEP_TIME); // We need to have thread sleep until signal is received from another rover ****
+			server.roverQueue.displayLocation();
 		}
 
 
@@ -158,6 +159,9 @@ public class ROVER_03{
 
 		return returnList;
 	}
+	
+	
+	// Add get LOC from Server and set it on queue **************************************/
 
 
 	// sends a SCAN request to the server and puts the result in the scanMap array
