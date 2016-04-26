@@ -20,7 +20,7 @@ public class RoverServer implements Runnable{
 	 */
 	private final static int PORT = 9000;
 	
-	public RoverQueue roverQueue;
+	private RoverQueue roverQueue;
 	
 	private Rover rover;
 	
@@ -147,4 +147,14 @@ public class RoverServer implements Runnable{
 			System.out.println("Address: " + r.getIP() + " , Port:" + r.getPort());
 		}
 	}
+
+	public RoverQueue getRoverQueue() {
+		return roverQueue;
+	}
+
+	public void setRoverQueue(RoverQueue roverQueue) {
+		this.roverQueue = roverQueue;
+	}
+	
+	
 }

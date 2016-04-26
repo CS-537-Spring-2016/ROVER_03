@@ -89,7 +89,7 @@ public class ROVER_03{
 		while (true) {	
 			getLocation(rover.getName() + " currentLoc: ");
 			Thread.sleep(SLEEP_TIME); // We need to have thread sleep until signal is received from another rover ****
-			server.roverQueue.displayLocation();
+			server.getRoverQueue().displayLocation();
 		}
 
 
