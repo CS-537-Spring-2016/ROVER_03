@@ -228,6 +228,8 @@ public class ROVER_03{
 					}
 				}
 				server.getQueue().removeCompletedJob();
+				System.out.println("ROVER_03 request GATHER");
+				out.println("GATHER");
 			}
 			/************************* MOVEMENT FOR TESTING OF COMMUNICATION*************************************************/
 		}
