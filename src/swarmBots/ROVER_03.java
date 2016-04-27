@@ -86,6 +86,11 @@ public class ROVER_03{
 
 		System.out.println("ROVER_03 equipment list " + equipment + "\n");
 		getLocation(rover.getName() + " currentLoc at start: ");
+		
+		//target_location request
+		
+		out.println("TARGET_LOC");
+		server.getQueue().addLocation(in.readLine());
 
 		/******** Rover logic *********/		
 		// Cardinals directions will be used when rover starts moving
