@@ -9,10 +9,11 @@ public class RoverQueue {
 	private ArrayList<Point2D> positionList;
 	private Double xPosition;
 	private Double yPosition;
+	private Point2D closestPoint;
 	 
 	
 	public RoverQueue(){
-
+		closestPoint = new Point2D.Double();
 //		locationList.add("LOC 13 18");
 //		locationList.add("LOC 4 25");
 //		locationList.add("LOC 5 32");
@@ -40,7 +41,6 @@ public class RoverQueue {
 		
 		ArrayList<Double> closestArray = new ArrayList<Double>();
 		ArrayList<Point2D> PointArray = new ArrayList<Point2D>();
-		Point2D closestPoint = new Point2D.Double();
 		Double closest = 10000.0;
 		
 		for(Point2D pt: positionList)
@@ -74,7 +74,7 @@ public class RoverQueue {
 	
 	// need to get correct index
 	public void removeCompletedJob(){
-		positionList.remove(0);
+		positionList.remove(closestPoint);
 	}
 	
 
