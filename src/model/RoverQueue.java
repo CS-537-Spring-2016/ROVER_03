@@ -63,7 +63,7 @@ public class RoverQueue {
 		// if the x and y coordinates are required to be extracted to Integer
 		int x = (int)closestPoint.getX();    
 		int y = (int)closestPoint.getY();
-		String [] closestLocation = closestPoint.toString().split(" ");
+		//String [] closestLocation = closestPoint.toString().split(" ");
 		
 		return "LOC " + x + " " + y;
 	}
