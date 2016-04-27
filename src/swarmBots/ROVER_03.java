@@ -40,7 +40,7 @@ public class ROVER_03{
 	private PrintWriter out;
 
 	private Tracker roverTracker;
-	
+
 	private ScanMap scanMap;
 
 	private Rover rover;
@@ -48,7 +48,7 @@ public class ROVER_03{
 	private Coord previousLoc;
 	private Coord currentLoc;
 	private String results = "";
-	
+
 	private RoverServer server;
 
 	public ROVER_03() throws IOException, InterruptedException {
@@ -83,7 +83,7 @@ public class ROVER_03{
 		rover.setTool(equipment.get(1));
 		rover.setTool(equipment.get(2));
 		rover.setDriveType(equipment.get(0));
-		
+
 		System.out.println("ROVER_03 equipment list " + equipment + "\n");
 		getLocation(rover.getName() + " currentLoc at start: ");
 
@@ -94,38 +94,178 @@ public class ROVER_03{
 		// start Rover controller process
 		while (true) {	
 			getLocation(rover.getName() + " currentLoc: ");
-			//Thread.sleep(SLEEP_TIME); // We need to have thread sleep until signal is received from another rover ****
-			System.out.print("Going to this location: ");
-			
-			/************************* MOVEMENT FOR TESTING OF COMMUNICATION*************************************************/
-					
-			if(!server.getQueue().isEmpty())
+			Thread.sleep(SLEEP_TIME); 
+			if(!server.roverQueue.isEmpty()){
+				System.out.print("Going to this location: ");
+
+				/************************* MOVEMENT FOR TESTING OF COMMUNICATION*************************************************/
+				// pull the MapTile array out of the ScanMap object
 				server.roverQueue.displayLocation();
 				roverTracker.setStartingPoint(currentLoc);
 				roverTracker.setDestination(extractLOC(server.getQueue().getJob()));
 				roverTracker.setDistanceTracker();
-				String startingDirection = (roverTracker.getDestination().xpos > 0)?"E":"W";
+				String direction = (roverTracker.getDistanceTracker().xpos > 0)?"E":"W";
+				if(direction.equals("E"))roverTracker.goingEast = true;
+				else roverTracker.goingWest = true;
+
 				while(!roverTracker.hasArrived()){
-					if(roverTracker.getDistanceTracker().xpos <= 0){
-						out.println("MOVE S");
-						roverTracker.updateYPos(-1);
-						Thread.sleep(1100);
-						System.out.println(roverTracker.getDistanceTracker().ypos);
+					//System.out.println("New iteration");
+					//System.out.println(direction);
+					if(roverTracker.goingEast){
+						System.out.println("going east");
+						while(roverTracker.getDistanceTracker().xpos != 0){
+							getLocation(rover.getName() + " currentLoc: ");
+							if(!blockedEast()){
+								out.println("MOVE " + direction);
+								roverTracker.updateXPos((roverTracker.getDistanceTracker().xpos >= 0)?-1:1);
+								Thread.sleep(1100);
+							}
+							else{
+								while(blockedEast()){
+									getLocation(rover.getName() + " currentLoc: ");
+									out.println("MOVE S");
+									roverTracker.updateYPos(-1);
+									Thread.sleep(1100);
+								}
+							}
+						}
+
+						if(roverTracker.getDistanceTracker().xpos == 0){
+							roverTracker.goingEast = false;
+							direction = (roverTracker.getDistanceTracker().ypos > 0)?"S":"N";
+							if(direction.equals("S"))roverTracker.goingSouth = true;
+							else roverTracker.goingNorth = true;
+							System.out.println("leaving east loop");
+							//System.out.println(roverTracker.toString());
+						}
 					}
-					else{
-					out.println("MOVE " + startingDirection);
-					roverTracker.updateXPos(-1);
-					Thread.sleep(1100);
-					System.out.println(roverTracker.getDistanceTracker().xpos);
+					//System.out.println(direction);
+
+					if(roverTracker.goingWest){
+						System.out.println("Going west");
+						while(roverTracker.getDistanceTracker().xpos != 0){
+							getLocation(rover.getName() + " currentLoc: ");
+							if(!blockedWest()){
+								out.println("MOVE " + direction);
+								roverTracker.updateXPos((roverTracker.getDistanceTracker().xpos >= 0)?-1:1);
+								//System.out.println(roverTracker.toString());
+								Thread.sleep(1100);
+							}
+							else{
+								while(blockedWest()){
+									getLocation(rover.getName() + " currentLoc: ");
+									out.println("MOVE S");
+									roverTracker.updateYPos(-1);
+									Thread.sleep(1100);
+								}
+							}
+						}
+						if(roverTracker.getDistanceTracker().xpos == 0){
+							roverTracker.goingWest = false;
+							direction = (roverTracker.getDistanceTracker().ypos > 0)?"S":"N";
+							if(direction.equals("S"))roverTracker.goingEast = true;
+							else roverTracker.goingNorth = true;
+							//System.out.println(roverTracker.toString());
+						}
+					}
+					//System.out.println(direction);
+
+					//going south
+					if(roverTracker.goingSouth){
+						System.out.println("Going south");
+						while(roverTracker.getDistanceTracker().ypos != 0){
+							getLocation(rover.getName() + " currentLoc: ");
+							if(!blockedSouth()){
+								out.println("MOVE " + direction);
+								roverTracker.updateYPos((roverTracker.getDistanceTracker().ypos >= 0)?-1:1);
+								Thread.sleep(1100);
+							}
+							else{
+								while(blockedSouth()){
+									getLocation(rover.getName() + " currentLoc: ");
+									out.println("MOVE E");
+									roverTracker.updateXPos(-1);
+									Thread.sleep(1100);
+								}
+							}
+						}
+						if(roverTracker.getDistanceTracker().ypos == 0){
+							roverTracker.goingSouth = false;
+							direction = (roverTracker.getDistanceTracker().xpos > 0)?"E":"W";
+							if(direction.equals("E"))roverTracker.goingEast = true;
+							else roverTracker.goingWest = true;
+							//System.out.println(roverTracker.toString());
+						}
+					}
+					//System.out.println(direction);
+
+					//going north
+					if(roverTracker.goingNorth){
+						System.out.println("Going north");
+						while(roverTracker.getDistanceTracker().ypos != 0){
+							getLocation(rover.getName() + " currentLoc: ");
+							if(!blockedNorth()){
+								out.println("MOVE " + direction);
+								roverTracker.updateYPos((roverTracker.getDistanceTracker().ypos >= 0)?-1:1);
+								Thread.sleep(1100);
+							}
+							else{
+								while(blockedNorth()){
+									getLocation(rover.getName() + " currentLoc: ");
+									out.println("MOVE E");
+									roverTracker.updateXPos(-1);
+									Thread.sleep(1100);
+								}
+							}
+						}
+						if(roverTracker.getDistanceTracker().ypos == 0){
+							roverTracker.goingNorth = false;
+							direction = (roverTracker.getDistanceTracker().xpos > 0)?"E":"W";
+							if(direction.equals("E"))roverTracker.goingEast = true;
+							else roverTracker.goingWest = true;
+							//System.out.println(roverTracker.toString());
+						}
 					}
 				}
 				server.getQueue().removeCompletedJob();
-			
+			}
 			/************************* MOVEMENT FOR TESTING OF COMMUNICATION*************************************************/
 		}
 
 
 
+	}
+
+	private boolean blockedEast(){
+		MapTile[][] scanMapTiles = scanMap.getScanMap();
+		int centerIndex = (scanMap.getEdgeSize() - 1)/2;
+		return scanMapTiles[centerIndex+1][centerIndex].getHasRover() 
+				|| scanMapTiles[centerIndex+1][centerIndex].getTerrain() == Terrain.ROCK
+				|| scanMapTiles[centerIndex+1][centerIndex].getTerrain() == Terrain.NONE;
+	}
+
+	private boolean blockedWest(){
+		MapTile[][] scanMapTiles = scanMap.getScanMap();
+		int centerIndex = (scanMap.getEdgeSize() - 1)/2;
+		return scanMapTiles[centerIndex-1][centerIndex].getHasRover() 
+				|| scanMapTiles[centerIndex-1][centerIndex].getTerrain() == Terrain.ROCK
+				|| scanMapTiles[centerIndex-1][centerIndex].getTerrain() == Terrain.NONE;
+	}
+
+	private boolean blockedNorth(){
+		MapTile[][] scanMapTiles = scanMap.getScanMap();
+		int centerIndex = (scanMap.getEdgeSize() - 1)/2;
+		return scanMapTiles[centerIndex][centerIndex-1].getHasRover() 
+				|| scanMapTiles[centerIndex][centerIndex-1].getTerrain() == Terrain.ROCK
+				|| scanMapTiles[centerIndex][centerIndex-1].getTerrain() == Terrain.NONE;
+	}
+
+	private boolean blockedSouth(){
+		MapTile[][] scanMapTiles = scanMap.getScanMap();
+		int centerIndex = (scanMap.getEdgeSize() - 1)/2;
+		return scanMapTiles[centerIndex][centerIndex+1].getHasRover() 
+				|| scanMapTiles[centerIndex][centerIndex+1].getTerrain() == Terrain.ROCK
+				|| scanMapTiles[centerIndex][centerIndex+1].getTerrain() == Terrain.NONE;
 	}
 
 	// displays current location and map on console only if location has changed
@@ -173,12 +313,12 @@ public class ROVER_03{
 		}
 		StringBuilder jsonEqList = new StringBuilder();
 		if(jsonEqListIn.startsWith("EQUIPMENT")){
-				while (!(jsonEqListIn = in.readLine()).equals("EQUIPMENT_END")) {
-					if(jsonEqListIn == null)
-						break;
-					jsonEqList.append(jsonEqListIn);
-					jsonEqList.append("\n");
-				}
+			while (!(jsonEqListIn = in.readLine()).equals("EQUIPMENT_END")) {
+				if(jsonEqListIn == null)
+					break;
+				jsonEqList.append(jsonEqListIn);
+				jsonEqList.append("\n");
+			}
 
 		} else {
 			// in case the server call gives unexpected results
@@ -191,8 +331,8 @@ public class ROVER_03{
 
 		return returnList;
 	}
-	
-	
+
+
 	// Add get LOC from Server and set it on queue **************************************/
 
 
@@ -207,7 +347,7 @@ public class ROVER_03{
 			jsonScanMapIn = "";
 		}
 		StringBuilder jsonScanMap = new StringBuilder();
-		System.out.println(rover.getName() + " incomming SCAN result - first readline: " + jsonScanMapIn);
+		//System.out.println(rover.getName() + " incomming SCAN result - first readline: " + jsonScanMapIn);
 
 		if(jsonScanMapIn.startsWith("SCAN")){	
 			while (!(jsonScanMapIn = in.readLine()).equals("SCAN_END")) {
