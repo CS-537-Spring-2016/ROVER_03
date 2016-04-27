@@ -61,11 +61,11 @@ public class RoverQueue {
 		}
 		System.out.println("The closest distance is:" + closest+ " which is at: "+ closestPoint);
 		// if the x and y coordinates are required to be extracted to Integer
-		//int x = (int)closestPoint.getX();    
-		//int y = (int)closestPoint.getY();
-		String [] closestLocation = closestPoint.toString().split(" ");
+		int x = (int)closestPoint.getX();    
+		int y = (int)closestPoint.getY();
+		//String [] closestLocation = closestPoint.toString().split(" ");
 		
-		return closestLocation[0] + " " + closestLocation[1];
+		return "LOC " + x + " " + y;
 	}
 
 	public boolean isEmpty(){

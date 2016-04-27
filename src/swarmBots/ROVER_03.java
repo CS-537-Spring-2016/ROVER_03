@@ -101,14 +101,14 @@ public class ROVER_03{
 			getLocation(rover.getName() + " currentLoc: ");
 
 			Thread.sleep(SLEEP_TIME); 
-			if(!server.roverQueue.isEmpty()){
+			if(!server.getQueue().isEmpty()){
 				System.out.print("Going to this location: ");
 
 				/************************* MOVEMENT FOR TESTING OF COMMUNICATION*************************************************/
 				// pull the MapTile array out of the ScanMap object
-				server.roverQueue.displayLocation();
+				server.getQueue().displayLocation();
 				roverTracker.setStartingPoint(currentLoc);
-				roverTracker.setDestination(extractLOC(server.getQueue().getJob()));
+				roverTracker.setDestination(extractLOC(server.getQueue().closestTargetLocation("LOC" + " " + currentLoc.xpos + " " + currentLoc.ypos)));
 				roverTracker.setDistanceTracker();
 				String direction = (roverTracker.getDistanceTracker().xpos > 0)?"E":"W";
 				if(direction.equals("E"))roverTracker.goingEast = true;
