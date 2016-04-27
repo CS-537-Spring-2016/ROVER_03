@@ -51,7 +51,14 @@ public class ROVER_110{
 		new Thread(server).start();
 		server.connectTo("127.0.0.1", 9000);
 		/****** Testing to see if other rover gets there locations *************/
-		server.sendLOC("LOC 25 20 0");
+		server.sendLOC("LOC 13 18 0");
+		server.sendLOC("LOC 4 25 0");
+		server.sendLOC("LOC 5 32 0");
+		server.sendLOC("LOC 15 36 0");
+		server.sendLOC("LOC 17 36 0");
+		server.sendLOC("LOC 30 21 0");
+
+
 		/**********************************************************************/
 		
 		Thread.sleep(WAIT_FOR_ROVERS);    // Make thread sleep until all rovers have connected
