@@ -99,6 +99,7 @@ public class ROVER_03{
 		// start Rover controller process
 		while (true) {	
 			getLocation(rover.getName() + " currentLoc: ");
+
 			Thread.sleep(SLEEP_TIME); 
 			if(!server.roverQueue.isEmpty()){
 				System.out.print("Going to this location: ");
@@ -237,6 +238,7 @@ public class ROVER_03{
 				out.println("GATHER");
 			}
 			/************************* MOVEMENT FOR TESTING OF COMMUNICATION*************************************************/
+
 		}
 
 
