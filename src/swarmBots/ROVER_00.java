@@ -204,7 +204,7 @@ public class ROVER_00 {
 						// check scanMap to see if path is blocked to the south
 						// (scanMap may be old data by now)
 						if (scanMapTiles[centerIndex][centerIndex +1].getHasRover() 
-								|| scanMapTiles[centerIndex][centerIndex +1].getTerrain() == Terrain.ROCK
+								
 								|| scanMapTiles[centerIndex][centerIndex +1].getTerrain() == Terrain.NONE) {
 							blocked = true;
 						} else {
@@ -220,13 +220,13 @@ public class ROVER_00 {
 						//System.out.println("ROVER_00 scanMapTiles[2][1].getTerrain() " + scanMapTiles[2][1].getTerrain().toString());
 						
 						if (scanMapTiles[centerIndex][centerIndex -1].getHasRover() 
-								|| scanMapTiles[centerIndex][centerIndex -1].getTerrain() == Terrain.ROCK
+								|| scanMapTiles[centerIndex][centerIndex -1].getTerrain() == Terrain.ROCK || scanMapTiles[centerIndex][centerIndex -1].getTerrain() == Terrain.SAND
 								|| scanMapTiles[centerIndex][centerIndex -1].getTerrain() == Terrain.NONE) {
 							blocked = true;
 						} else {
 							// request to server to move
 							out.println("MOVE N");
-							//System.out.println("ROVER_00 request move N");
+							System.out.println("ROVER_00 request move N");
 						}					
 					}
 				}
