@@ -13,7 +13,7 @@ public class RoverQueue {
 	
 	public RoverQueue(){
 		closestPoint = new Point2D.Double();
-		
+		positionList = new ArrayList<Point2D>();
 		// These are hard coded cordinates but will not be there for final implementation..will be receiving these from other rovers or server target location
 		addLocation("LOC 13 18");
 		addLocation("LOC 4 25");
@@ -26,9 +26,6 @@ public class RoverQueue {
 		addLocation("LOC 17 12");
 		addLocation("LOC 4 20");
 		addLocation("LOC 10 23");
-
-		positionList = new ArrayList<Point2D>();
-
 	}
 	
 	public void addLocation (String location){
