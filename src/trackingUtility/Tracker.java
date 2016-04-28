@@ -6,22 +6,22 @@ public class Tracker {
 
 	private Coord returnLocation;
 	private Coord targetLocation;
-
+	
 	private Coord startingPoint;
 	private Coord destination;
 	
 	public boolean blocked;
-	
+
 	public boolean goingNorth = false;
 	public boolean goingSouth = false;
 	public boolean goingEast = false;
 	public boolean goingWest = false;
-	
+
 	public boolean wait = false;
 
 	// Keeps track of how may tiles are left to go
 	private Coord distanceTracker;
-	
+
 	public Tracker(){
 		distanceTracker = new Coord(0,0);
 	}
@@ -70,18 +70,16 @@ public class Tracker {
 	public void updateXPos(int x){
 		distanceTracker.xpos += x; 
 	}
-	
+
 	public void updateYPos(int y){
 		distanceTracker.ypos += y; 
 	}
-	
+
 	public boolean hasArrived(){
 		return distanceTracker.xpos == 0 && distanceTracker.ypos == 0;
 	}
-	
+
 	public boolean isBlocked(){
 		return blocked;
 	}
-	
-	
 }
