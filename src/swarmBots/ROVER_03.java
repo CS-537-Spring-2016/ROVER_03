@@ -121,13 +121,39 @@ public class ROVER_03{
 							getLocation(rover.getName() + " currentLoc: ");
 							map = scanMap.getScanMap();
 							centerIndex = (scanMap.getEdgeSize() - 1)/2;
-							if(!blocked(centerIndex + 1,centerIndex,map)) move("E");
-							else if(!blocked(centerIndex + 1,centerIndex + 1, map)){
-								move("S");
-								move("E");
+							if(!blocked(centerIndex + 1,centerIndex,map) & !roverTracker.blockedEast) move("E");
+							else{
+								roverTracker.blockedEast = true; // if you are here it means that east is blocked
+								// If not blocked south
+								if(!blocked(centerIndex, centerIndex + 1,map) && !roverTracker.blockedSouth){
+									move("S");
+									if(!blocked(centerIndex + 1,centerIndex + 1, map)){
+										move("E");
+									}
+								}
+								else{
+									roverTracker.blockedSouth = true; // if you are here it means that south is also blocked
+									//if not blocked north
+									if(!blocked(centerIndex, centerIndex - 1,map) && !roverTracker.blockedNorth){
+										//while(roverTracker.blockedEast){
+										/*if(!blocked(centerIndex ,centerIndex - 1, map) && !roverTracker.blockedNorth){*/
+										move("N");
+
+										//	else
+										//	move("W");
+									}
+									else
+										move("W");
+									if(!blocked(centerIndex,centerIndex - 1, map) && !blocked(centerIndex + 1,centerIndex - 1, map)){
+										roverTracker.blockedEast = false;
+										roverTracker.blockedSouth = false;
+										//getLocation(rover.getName() + " currentLoc: ");
+										//map = scanMap.getScanMap();
+										//centerIndex = (scanMap.getEdgeSize() - 1)/2;
+									}
+								}
 							}
-							else
-								move("S");
+
 						}
 						if(roverTracker.getDistanceTracker().xpos == 0){
 							roverTracker.goingEast = false;
@@ -205,6 +231,14 @@ public class ROVER_03{
 		/************************* MOVEMENT FOR TESTING OF COMMUNICATION*************************************************/
 
 	}
+
+	//	private boolean clearPath(MapTile[][] map, int centerIndex){
+	//		for (int column = centerIndex + 1 ; column < map[0].length; column++)
+	//			for (int row = centerIndex + 1; row < map.length; row++)
+	//				if(map[column][row].getTerrain() == Terrain.ROCK)
+	//					return false;
+	//		return true;
+	//	}				
 
 	private String nextDirection(String oldDirection){
 		String direction = null;
