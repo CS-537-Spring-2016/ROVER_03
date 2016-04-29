@@ -305,6 +305,22 @@ public class ROVER_99 {
 	}
 	
 
+	
+	
+	// communication between rover
+	// getting the location of another rover which is Struct
+	
+	public static String locOfStructRover()
+	{
+		
+	}
+	
+	
+	
+	
+	
+	
+	
 	// this takes the LOC response string, parses out the x and x values and
 	// returns a Coord object
 	public static Coord extractLOC(String sStr) {
