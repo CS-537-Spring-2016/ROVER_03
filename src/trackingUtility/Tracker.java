@@ -11,6 +11,11 @@ public class Tracker {
 	private Coord destination;
 	
 	public boolean blocked;
+	
+	public boolean blockedEast = false;
+	public boolean blockedWest = false;
+	public boolean blockedNorth = false;
+	public boolean blockedSouth = false;
 
 	public boolean goingNorth = false;
 	public boolean goingSouth = false;
