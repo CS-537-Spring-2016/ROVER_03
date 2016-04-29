@@ -310,8 +310,10 @@ public class ROVER_99 {
 	// communication between rover
 	// getting the location of another rover which is Struct
 	
-	public static String locOfStructRover()
+	public static String locOfStructRover(int start,int end)
 	{
+		int x="";
+		int y=";"
 		
 	}
 	
