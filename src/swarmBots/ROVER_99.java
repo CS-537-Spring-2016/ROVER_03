@@ -312,8 +312,8 @@ public class ROVER_99 {
 	
 	public static String locOfStructRover(int start,int end)
 	{
-		int x="";
-		int y=";"
+		int x=start;
+		int y=end;
 		
 	}
 	
