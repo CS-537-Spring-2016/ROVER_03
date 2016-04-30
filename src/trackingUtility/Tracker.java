@@ -1,9 +1,14 @@
 package trackingUtility;
 
+import java.util.Stack;
+
 import common.Coord;
 
 public class Tracker {
 
+	// Will have location coordinate and direction rover went in a string  
+	private Stack<String> stuckMarkers;
+	
 	private Coord returnLocation;
 	private Coord targetLocation;
 	
@@ -29,6 +34,19 @@ public class Tracker {
 
 	public Tracker(){
 		distanceTracker = new Coord(0,0);
+	}
+	
+	// It just peeks the last point where rover got stuck
+	public String backtrack(){
+		return stuckMarkers.peek();
+	}
+	
+	public void removeMarker(){
+		stuckMarkers.pop();
+	}
+	
+	public void setMarker(String locDir){
+		stuckMarkers.add(locDir);
 	}
 
 	public Coord getReturnLocation() {
