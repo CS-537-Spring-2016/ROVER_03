@@ -16,14 +16,14 @@ public class RoverQueue {
 		positionList = new ArrayList<Point2D>();
 		// These are hard coded cordinates but will not be there for final implementation..will be receiving these from other rovers or server target location
 
-		addLocation("LOC 27 7");
-		addLocation("LOC 34 4");
-		addLocation("LOC 41 4");
-		addLocation("LOC 53 2");
-		addLocation("LOC 71 4");
-		addLocation("LOC 69 13");
-		addLocation("LOC 73 17");
-		addLocation("LOC 90 16");
+//		addLocation("LOC 27 7");
+//		addLocation("LOC 34 4");
+//		addLocation("LOC 41 4");
+//		addLocation("LOC 53 2");
+//		addLocation("LOC 71 4");
+//		addLocation("LOC 69 13");
+//		addLocation("LOC 73 17");
+//		addLocation("LOC 90 16");
 	}
 	
 	public void addLocation (String location){
