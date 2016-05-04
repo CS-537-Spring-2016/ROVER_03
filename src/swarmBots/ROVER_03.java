@@ -48,7 +48,6 @@ public class ROVER_03{
 
 	private Coord previousLoc;
 	private Coord currentLoc;
-	private Coord stuckAt;
 	private String results = "";
 
 	private RoverServer server;
@@ -192,6 +191,10 @@ public class ROVER_03{
 						}
 					}
 				}
+			}
+			else{
+				out.println("START_LOC");
+				server.getQueue().addLocation(in.readLine());
 			}
 
 			if(roverTracker.atTargetLocation(currentLoc)){
