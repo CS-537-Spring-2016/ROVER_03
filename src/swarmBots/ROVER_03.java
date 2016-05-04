@@ -92,7 +92,10 @@ public class ROVER_03{
 		//target_location request
 
 		out.println("TARGET_LOC");
-		server.getQueue().addLocation(in.readLine());
+		String loc = in.readLine();
+		Coord locCoord = extractLOC(loc);
+		roverTracker.setTargetLocation(locCoord);
+		server.getQueue().addLocation(loc);
 
 		/******** Rover logic *********/		
 		// start Rover controller process
@@ -189,6 +192,13 @@ public class ROVER_03{
 						}
 					}
 				}
+			}
+
+			if(roverTracker.atTargetLocation(currentLoc)){
+				for(int x = -3; x < 4; x ++)
+					for (int y = -3; y < 4; y++)
+						if (!blocked(x,y))
+							server.getQueue().addLocation("LOC " + (x + currentLoc.xpos) + " " + (y + currentLoc.ypos) );
 			}
 			server.getQueue().removeCompletedJob();
 			System.out.println("ROVER_03 request GATHER");
