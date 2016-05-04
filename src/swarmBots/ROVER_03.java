@@ -240,28 +240,28 @@ public class ROVER_03{
 			getLocation(rover.getName() + " currentLoc: ");
 			int centerIndex = (scanMap.getEdgeSize() - 1)/2;
 
-			if(!blocked(0,1) && (blocked(1,-1, centerIndex, centerIndex + 1) || blocked(1,0, centerIndex, centerIndex + 1)) && !previousDirection.equals("N")){
+			if((!blocked(0,1) && (blocked(1,-1, centerIndex, centerIndex + 1) || blocked(1,1))) && !previousDirection.equals("N")){
 				out.println("MOVE S");
 				previousDirection = "S";
 				Thread.sleep(1100);
 				continue;
 			}
-
-			if(!blocked(-1,0) && (blocked(1,1, centerIndex - 1, centerIndex) || blocked(0,1, centerIndex - 1, centerIndex)) && !previousDirection.equals("E")){
-				out.println("MOVE W");
-				previousDirection = "W";
-				Thread.sleep(1100);
-				continue;
-			}
-
-			if(!blocked(0,-1) && (blocked(-1,1, centerIndex, centerIndex - 1) || blocked(-1,0, centerIndex, centerIndex - 1)) && !previousDirection.equals("S")){
+			
+			if((!blocked(0,-1) && (blocked(-1,1, centerIndex, centerIndex - 1) || blocked(-1,-1))) && !previousDirection.equals("S")){
 				out.println("MOVE N");
 				previousDirection = "N";
 				Thread.sleep(1100);
 				continue;
 			}
 
-			if(!blocked(1,0) && (blocked(-1,-1, centerIndex + 1, centerIndex) || blocked(0,-1, centerIndex + 1, centerIndex)) && !previousDirection.equals("W")){
+			if((!blocked(-1,0) && (blocked(1,1, centerIndex - 1, centerIndex) || blocked(-1,1))) && !previousDirection.equals("E")){
+				out.println("MOVE W");
+				previousDirection = "W";
+				Thread.sleep(1100);
+				continue;
+			}
+
+			if((!blocked(1,0) && (blocked(-1,-1, centerIndex + 1, centerIndex) || blocked(1,-1))) && !previousDirection.equals("W")){
 				out.println("MOVE E");
 				previousDirection = "E";
 				Thread.sleep(1100);
