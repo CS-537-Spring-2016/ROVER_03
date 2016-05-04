@@ -116,4 +116,10 @@ public class Tracker {
 	public void setLastMove(Coord location){
 		lastMove = location;
 	}
+	
+	public boolean atTargetLocation(Coord location){
+		if(location.xpos == targetLocation.xpos && location.ypos == targetLocation.ypos)
+			return true;
+		return false;
+	}
 }
