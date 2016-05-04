@@ -7,13 +7,14 @@ import common.Coord;
 public class Tracker {
 
 	// Will have location coordinate and direction rover went in a string  
-	private Stack<String> stuckMarkers;
-	
+	private Stack<State> markers;
 	private Coord returnLocation;
 	private Coord targetLocation;
 	
 	private Coord startingPoint;
 	private Coord destination;
+	
+	private Coord lastMove;
 	
 	public boolean blocked;
 	
@@ -34,19 +35,25 @@ public class Tracker {
 
 	public Tracker(){
 		distanceTracker = new Coord(0,0);
+		markers = new Stack<>();
 	}
 	
 	// It just peeks the last point where rover got stuck
-	public String backtrack(){
-		return stuckMarkers.peek();
+	public State peekMarker(){
+		return markers.peek();
 	}
 	
-	public void removeMarker(){
-		stuckMarkers.pop();
+	public void updateDistanceTracker(Coord currLocation){
+		updateXPos(lastMove.xpos - currLocation.xpos);
+		updateYPos(lastMove.ypos - currLocation.ypos);
 	}
 	
-	public void setMarker(String locDir){
-		stuckMarkers.add(locDir);
+	public State removeMarker(){
+		return markers.pop();
+	}
+	
+	public void addMarker(State marker){
+		markers.add(marker);
 	}
 
 	public Coord getReturnLocation() {
@@ -104,5 +111,9 @@ public class Tracker {
 
 	public boolean isBlocked(){
 		return blocked;
+	}
+	
+	public void setLastMove(Coord location){
+		lastMove = location;
 	}
 }

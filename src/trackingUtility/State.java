@@ -1,19 +1,32 @@
 package trackingUtility;
 
+import java.util.LinkedList;
+
 import common.Coord;
 
 public class State {
 	
 	private Coord coordinate;
-	private String direction;
+	private LinkedList<String> possibleDirections;
 	
-	public State(Coord coordinate, String direction){
+	public State(Coord coordinate){
 		this.coordinate = coordinate;
-		this.direction = direction;
 	}
 	
-	public String getDirection(){
-		return direction;
+	public State(Coord coordinate, String...directions){
+		this.coordinate = coordinate;
+		possibleDirections = new LinkedList<>();
+		for(String s: directions){
+			possibleDirections.add(s);
+		}
+	}
+	
+	public String getNextDirection(){
+		return possibleDirections.getFirst();
+	}
+	
+	public boolean hasNext(){
+		return !possibleDirections.isEmpty();
 	}
 	
 	public int getX(){
