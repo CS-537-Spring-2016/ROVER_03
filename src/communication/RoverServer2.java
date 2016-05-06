@@ -7,7 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import model.Rover;
-
+import model.RoverQueue;
 
 /* NOTE TO SELF: Still need to implement method to reconnected to a rover if connection is lost.
  * Also make sure to send rover name list of tools and drive type to clients that connect to you.*/
@@ -18,7 +18,9 @@ public class RoverServer2 implements Runnable{
 	 * This port number only applies to ROVER_03
 	 */
 	private final static int PORT = 9001;
-
+	
+	public RoverQueue roverQueue;
+	
 	private Rover rover;
 	
 	// List of connected rovers
@@ -33,6 +35,7 @@ public class RoverServer2 implements Runnable{
 	public RoverServer2(Rover rover) throws IOException{
 		// Creates a server socket at specified port and binds it to a specified port and address of local machine
 		serverSocket = new ServerSocket(PORT);
+		roverQueue = new RoverQueue();
 		this.rover = rover;
 		System.out.println(this.rover.getName() + " server online...");
 		System.out.println("Waiting for other rovers to connect...");
@@ -49,20 +52,21 @@ public class RoverServer2 implements Runnable{
 		// Begin messaging thread
 		sendMessage();
 	}
+
 	
 	public void connectTo(String IP, int port) throws IOException, InterruptedException{
-		RoverClient client = new RoverClient(IP, port, rover.getName());
+		RoverClient client = new RoverClient(IP, port, rover.getName(), roverQueue);
 		rovers.add(client);
 		new Thread(client).start();
 		Thread.sleep(10000); /* Need to wait until rover establishes a connection before doing anything else like sending a message
 								or else you will get a null pointer exception */
 	}
-
+	
 	@Override
 	public void run() {	// Thread that continously listens for incoming connections
 		while(true){
 			try {
-				RoverClient client = new RoverClient(serverSocket.accept(), rover.getName());
+				RoverClient client = new RoverClient(serverSocket.accept(), rover.getName(), roverQueue);
 				rovers.add(client);
 				new Thread(client).start(); // instantiates and starts a new thread for a connecting client
 			} catch (IOException e) {
@@ -70,6 +74,12 @@ public class RoverServer2 implements Runnable{
 			}
 		}
 	}
+	
+	
+	// Will be used in ROVER_03 class to check if Rover Queue is empty
+	//public void emptyQueue(){
+	//	roverqueue
+	//}
 
 	/* This method sends messages that are written on the console to all rovers connected
 	 * how ever again this thread will not be needed for the final implementation and is only for 
@@ -114,12 +124,11 @@ public class RoverServer2 implements Runnable{
 	 * LOC 35 65 is the string from the server and 1 is the index of the rover in 
 	 * your array list.
 	 * */
-	public void sendLOC(String location) throws InterruptedException{
-		System.out.println(rovers.isEmpty());
-		getClientList();
-		//Thread.sleep(10000);
+	public void sendLOC(String location){
 		int index = getIndex(location);
 		rovers.get(index).send(getLocation(location));
+		roverQueue.addLocation(getLocation(location));
+		roverQueue.displayLocation();
 	}
 	
 	private int getIndex(String location){
@@ -145,5 +154,9 @@ public class RoverServer2 implements Runnable{
 		for(RoverClient r : rovers){
 			System.out.println("Address: " + r.getIP() + " , Port:" + r.getPort());
 		}
+	}
+	
+	public RoverQueue getQueue(){
+		return roverQueue;
 	}
 }

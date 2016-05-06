@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import model.Rover;
+import model.RoverQueue;
 
 
 /* NOTE TO SELF: Still need to implement method to reconnected to a rover if connection is lost.
@@ -18,7 +19,9 @@ public class RoverServer implements Runnable{
 	 * This port number only applies to ROVER_03
 	 */
 	private final static int PORT = 9000;
-
+	
+	private RoverQueue roverQueue;
+	
 	private Rover rover;
 	
 	// List of connected rovers
@@ -33,6 +36,7 @@ public class RoverServer implements Runnable{
 	public RoverServer(Rover rover) throws IOException{
 		// Creates a server socket at specified port and binds it to a specified port and address of local machine
 		serverSocket = new ServerSocket(PORT);
+		roverQueue = new RoverQueue();
 		this.rover = rover;
 		System.out.println(this.rover.getName() + " server online...");
 		System.out.println("Waiting for other rovers to connect...");
@@ -54,7 +58,7 @@ public class RoverServer implements Runnable{
 	public void run() {	// Thread that continously listens for incoming connections
 		while(true){
 			try {
-				RoverClient client = new RoverClient(serverSocket.accept(), rover.getName());
+				RoverClient client = new RoverClient(serverSocket.accept(), rover.getName(), roverQueue);
 				rovers.add(client);
 				new Thread(client).start(); // instantiates and starts a new thread for a connecting client
 			} catch (IOException e) {
@@ -62,6 +66,12 @@ public class RoverServer implements Runnable{
 			}
 		}
 	}
+	
+	
+	// Will be used in ROVER_03 class to check if Rover Queue is empty
+	//public void emptyQueue(){
+	//	roverqueue
+	//}
 
 	/* This method sends messages that are written on the console to all rovers connected
 	 * how ever again this thread will not be needed for the final implementation and is only for 
@@ -109,6 +119,8 @@ public class RoverServer implements Runnable{
 	public void sendLOC(String location){
 		int index = getIndex(location);
 		rovers.get(index).send(getLocation(location));
+		roverQueue.addLocation(getLocation(location));
+		roverQueue.displayLocation();
 	}
 	
 	private int getIndex(String location){
@@ -135,4 +147,19 @@ public class RoverServer implements Runnable{
 			System.out.println("Address: " + r.getIP() + " , Port:" + r.getPort());
 		}
 	}
+
+	
+	public RoverQueue getQueue(){
+		return roverQueue;
+	}
+
+
+//	public RoverQueue getRoverQueue() {
+//		return roverQueue;
+//	}
+//
+//	public void setRoverQueue(RoverQueue roverQueue) {
+//		this.roverQueue = roverQueue;
+//	}
+	
 }
