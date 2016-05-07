@@ -242,6 +242,7 @@ public class ROVER_03{
 	private void goAround(String direction) throws InterruptedException, IOException{
 
 		String previousDirection = "";
+		String direction1 = previousDirection;
 		while((currentLoc.ypos > roverTracker.peekMarker().getY() && direction.equals("N")) ||
 				(currentLoc.xpos > roverTracker.peekMarker().getX() && direction.equals("W")) ||
 				(currentLoc.ypos < roverTracker.peekMarker().getY() && direction.equals("S")) ||
@@ -252,6 +253,7 @@ public class ROVER_03{
 //			System.out.println(currentLoc.xpos <= roverTracker.peekMarker().getX());
 			getLocation(rover.getName() + " currentLoc: ");
 			int centerIndex = (scanMap.getEdgeSize() - 1)/2;
+			direction1 = previousDirection;
 
 			if((!blocked(0,1) && (blocked(1,-1, centerIndex, centerIndex + 1) || blocked(1,1))) && !previousDirection.equals("N")){
 				out.println("MOVE S");
@@ -279,6 +281,10 @@ public class ROVER_03{
 				previousDirection = "E";
 				Thread.sleep(1100);
 				continue;
+			}
+			
+			if(direction1.equals(previousDirection)){
+				previousDirection = "";
 			}
 		}
 		getLocation(rover.getName() + " currentLoc: ");
