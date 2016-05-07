@@ -90,14 +90,14 @@ public class ROVER_03{
 
 		//target_location request
 
-		out.println("TARGET_LOC");
-		String loc = in.readLine();
-		Coord locCoord = extractLOC(loc);
-		roverTracker.setTargetLocation(locCoord);
-		server.getQueue().addLocation(loc);
+//				out.println("TARGET_LOC");
+//				String loc = in.readLine();
+//				Coord locCoord = extractLOC(loc);
+//				roverTracker.setTargetLocation(locCoord);
+//				server.getQueue().addLocation(loc);
 
 		/******** Rover logic *********/		
-		// start Rover controller process
+		// start Rover controller process 
 		while (true) {	
 			getLocation(rover.getName() + " currentLoc: ");
 
@@ -192,17 +192,17 @@ public class ROVER_03{
 					}
 				}
 			}
-			else{
-				out.println("START_LOC");
-				server.getQueue().addLocation(in.readLine());
-			}
+			//			else{
+			//				out.println("START_LOC");
+			//				server.getQueue().addLocation(in.readLine());
+			//			}
 
-			if(roverTracker.atTargetLocation(currentLoc)){
-				for(int x = -3; x < 4; x ++)
-					for (int y = -3; y < 4; y++)
-						if (!blocked(x,y))
-							server.getQueue().addLocation("LOC " + (x + currentLoc.xpos) + " " + (y + currentLoc.ypos) );
-			}
+//			if(roverTracker.atTargetLocation(currentLoc)){
+//				for(int x = -3; x < 4; x ++)
+//					for (int y = -3; y < 4; y++)
+//						if (!blocked(x,y))
+//							server.getQueue().addLocation("LOC " + (x + currentLoc.xpos) + " " + (y + currentLoc.ypos) );
+//			}
 			server.getQueue().removeCompletedJob();
 			System.out.println("ROVER_03 request GATHER");
 			out.println("GATHER");
@@ -247,10 +247,10 @@ public class ROVER_03{
 				(currentLoc.xpos > roverTracker.peekMarker().getX() && direction.equals("W")) ||
 				(currentLoc.ypos < roverTracker.peekMarker().getY() && direction.equals("S")) ||
 				(currentLoc.xpos < roverTracker.peekMarker().getX() && direction.equals("E"))){
-//			System.out.println(condition);
-//			System.out.println(currentLoc.xpos);
-//			System.out.println(roverTracker.peekMarker().getX());
-//			System.out.println(currentLoc.xpos <= roverTracker.peekMarker().getX());
+			//			System.out.println(condition);
+			//			System.out.println(currentLoc.xpos);
+			//			System.out.println(roverTracker.peekMarker().getX());
+			//			System.out.println(currentLoc.xpos <= roverTracker.peekMarker().getX());
 			getLocation(rover.getName() + " currentLoc: ");
 			int centerIndex = (scanMap.getEdgeSize() - 1)/2;
 			direction1 = previousDirection;
@@ -261,7 +261,7 @@ public class ROVER_03{
 				Thread.sleep(1100);
 				continue;
 			}
-			
+
 			if((!blocked(0,-1) && (blocked(-1,1, centerIndex, centerIndex - 1) || blocked(-1,-1))) && !previousDirection.equals("S")){
 				out.println("MOVE N");
 				previousDirection = "N";
@@ -282,7 +282,7 @@ public class ROVER_03{
 				Thread.sleep(1100);
 				continue;
 			}
-			
+
 			if(direction1.equals(previousDirection)){
 				previousDirection = "";
 			}
@@ -308,7 +308,7 @@ public class ROVER_03{
 			roverTracker.updateXPos(-1);
 		break;
 		}
-		System.out.println("Distance Left = " + roverTracker.getDistanceTracker().xpos + "," + roverTracker.getDistanceTracker().ypos);
+		//		System.out.println("Distance Left = " + roverTracker.getDistanceTracker().xpos + "," + roverTracker.getDistanceTracker().ypos);
 		Thread.sleep(1100);
 	}
 
@@ -348,7 +348,7 @@ public class ROVER_03{
 			// ***** do a SCAN *****
 			this.doScan();
 			//scanMap.debugPrintMap();
-			System.out.println(rover.getName() + " ------------ bottom process control --------------"); 
+//			System.out.println(rover.getName() + " ------------ bottom process control --------------"); 
 		}
 	}
 

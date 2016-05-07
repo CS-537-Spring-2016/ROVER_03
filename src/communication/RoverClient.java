@@ -44,7 +44,7 @@ public class RoverClient implements Runnable{
 		roverName = name;
 
 	} 
-	
+
 	// Return rover name
 	public String getRoverName() {
 		return roverName;
@@ -59,7 +59,7 @@ public class RoverClient implements Runnable{
 	public InetAddress getIP(){
 		return socket.getInetAddress();
 	}
-	
+
 	// returns port number of other rover
 	public int getPort(){
 		return socket.getPort();
@@ -79,9 +79,17 @@ public class RoverClient implements Runnable{
 		//send("You are now connected to " + roverName); CAUSES AN ISSUE NEED TO FIX THIS
 
 		while(true){
+
 			try {
-				if(input.ready())
-					queue.addLocation(input.readLine());
+				if(input.ready()){
+					String loc = input.readLine();
+					String parts[] = loc.split(" ");
+					if(!parts[0].equals("ROCK")){
+						queue.addLocation("LOC " + parts[2] + " " + parts[3]);
+						System.out.println("LOC " + parts[2] + " " + parts[3]);
+					}
+				}
+
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
