@@ -107,7 +107,8 @@ public class ROVER_99 {
 		boolean goingEast = false;
 		
 		boolean stuck = false; // just means it did not change locations between requests,
-								// could be velocity limit or obstruction etc.
+		int stillStuck = 0;						// could be velocity limit or obstruction etc.
+		
 		boolean blocked = false;
 
 		String[] cardinals = new String[4];
@@ -164,9 +165,15 @@ public class ROVER_99 {
 
 			
 			// MOVING
+			
+			if(stuck == true){
+				stillStuck++;
+			} else {
+				stillStuck = 0;
+			}
 
 			// try moving east 5 block if blocked
-			if (blocked) {
+			if (blocked || stillStuck == 10) {
 				for (int i = 0; i < 5; i++) {
 					out.println("MOVE S");
 					//System.out.println("ROVER_00 request move E");
@@ -187,8 +194,8 @@ public class ROVER_99 {
 				if (goingEast) {
 					// check scanMap to see if path is blocked to the south
 					// (scanMap may be old data by now)
-					if (scanMapTiles[centerIndex][centerIndex +1].getHasRover() 
-							|| scanMapTiles[centerIndex +1][centerIndex].getTerrain() == Terrain.ROCK
+					if (scanMapTiles[centerIndex  +1][centerIndex].getHasRover() 
+							//|| scanMapTiles[centerIndex +1][centerIndex].getTerrain() == Terrain.ROCK
 							|| scanMapTiles[centerIndex +1][centerIndex].getTerrain() == Terrain.NONE) {
 						blocked = true;
 					} else {
@@ -203,8 +210,8 @@ public class ROVER_99 {
 					System.out.println("ROVER_99 scanMapTiles[2][1].getHasRover() " + scanMapTiles[2][1].getHasRover());
 					System.out.println("ROVER_99 scanMapTiles[2][1].getTerrain() " + scanMapTiles[2][1].getTerrain().toString());
 					
-					if (scanMapTiles[centerIndex][centerIndex -1].getHasRover() 
-							|| scanMapTiles[centerIndex -1][centerIndex].getTerrain() == Terrain.ROCK
+					if (scanMapTiles[centerIndex -1][centerIndex].getHasRover() 
+							//|| scanMapTiles[centerIndex -1][centerIndex].getTerrain() == Terrain.ROCK
 							|| scanMapTiles[centerIndex -1][centerIndex].getTerrain() == Terrain.NONE) {
 						blocked = true;
 					} else {
