@@ -3,6 +3,8 @@ package model;
 import java.awt.geom.Point2D;
 import java.util.ArrayList;
 
+import common.Coord;
+
 public class RoverQueue {
 	
 	private ArrayList<Point2D> positionList;
@@ -26,18 +28,18 @@ public class RoverQueue {
 //		addLocation("LOC 90 16");
 	}
 	
-	public void addLocation (String location){
-		xPosition = Double.parseDouble(location.split(" ")[1].trim());
-		yPosition = Double.parseDouble(location.split(" ")[2].trim());
+	public void addLocation (Coord location){
+		xPosition = (double) location.xpos;
+		yPosition = (double) location.ypos;;
 		Point2D point = new Point2D.Double(xPosition, yPosition);
 		positionList.add(point);	
 	}
 	
 	//finds the closest location from the current location
-	public String closestTargetLocation(String currentLocation)
+	public Coord closestTargetLocation(Coord currentLocation)
 	{
-		Double currentXPosition = Double.parseDouble(currentLocation.split(" ")[1].trim());
-		Double currentYPosition = Double.parseDouble(currentLocation.split(" ")[2].trim());
+		Double currentXPosition = (double) currentLocation.xpos;
+		Double currentYPosition = (double) currentLocation.ypos;;
 		Point2D point = new Point2D.Double(currentXPosition, currentYPosition);
 		
 		ArrayList<Double> closestArray = new ArrayList<Double>();
@@ -46,7 +48,7 @@ public class RoverQueue {
 		
 		for(Point2D pt: positionList)
 		{
-			System.out.println("The distance from :"+point+" to: "+pt+" is: "+point.distance(pt)); 
+			System.out.println("The distance from :" + point + " to: " + pt + " is: " + point.distance(pt)); 
 			closestArray.add(point.distance(pt));
 			PointArray.add(pt);
 		}
@@ -60,13 +62,13 @@ public class RoverQueue {
 				closestPoint = PointArray.get(j); 
 			}
 		}
-		System.out.println("The closest distance is:" + closest+ " which is at: "+ closestPoint);
+		System.out.println("The closest distance is:" + closest + " which is at: " + closestPoint);
 		// if the x and y coordinates are required to be extracted to Integer
 		int x = (int)closestPoint.getX();    
 		int y = (int)closestPoint.getY();
 		//String [] closestLocation = closestPoint.toString().split(" ");
 		
-		return "LOC " + x + " " + y;
+		return new Coord(x,y);
 	}
 
 	public boolean isEmpty(){

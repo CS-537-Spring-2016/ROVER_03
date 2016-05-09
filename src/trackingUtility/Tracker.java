@@ -7,6 +7,7 @@ import common.Coord;
 public class Tracker {
 
 	// Will have location coordinate and direction rover went in a string  
+	private Coord currentLocation;
 	private Stack<State> markers;
 	private Coord returnLocation;
 	private Coord targetLocation;
@@ -14,28 +15,22 @@ public class Tracker {
 	private Coord startingPoint;
 	private Coord destination;
 	
-	private Coord lastMove;
-	
-	public boolean blocked;
-	
-	public boolean blockedEast = false;
-	public boolean blockedWest = false;
-	public boolean blockedNorth = false;
-	public boolean blockedSouth = false;
-
-	public boolean goingNorth = false;
-	public boolean goingSouth = false;
-	public boolean goingEast = false;
-	public boolean goingWest = false;
-
-	public boolean wait = false;
-
+	private Coord lastSuccessfulMove;
 	// Keeps track of how may tiles are left to go
 	private Coord distanceTracker;
 
 	public Tracker(){
 		distanceTracker = new Coord(0,0);
+		currentLocation = new Coord(0,0);
 		markers = new Stack<>();
+	}
+	
+	public void setCurrentLocation(Coord currentLocation){
+		this.currentLocation = currentLocation;
+	}
+	
+	public Coord getCurrentLocation(){
+		return currentLocation;
 	}
 	
 	// It just peeks the last point where rover got stuck
@@ -43,9 +38,9 @@ public class Tracker {
 		return markers.peek();
 	}
 	
-	public void updateDistanceTracker(Coord currLocation){
-		updateXPos(lastMove.xpos - currLocation.xpos);
-		updateYPos(lastMove.ypos - currLocation.ypos);
+	public void updateDistanceTracker(){
+		updateXPos(lastSuccessfulMove.xpos - currentLocation.xpos);
+		updateYPos(lastSuccessfulMove.ypos - currentLocation.ypos);
 	}
 	
 	public State removeMarker(){
@@ -108,13 +103,9 @@ public class Tracker {
 	public boolean hasArrived(){
 		return distanceTracker.xpos == 0 && distanceTracker.ypos == 0;
 	}
-
-	public boolean isBlocked(){
-		return blocked;
-	}
 	
-	public void setLastMove(Coord location){
-		lastMove = location;
+	public void setLastSuccessfulMove(Coord location){
+		lastSuccessfulMove = location;
 	}
 	
 	public boolean atTargetLocation(Coord location){

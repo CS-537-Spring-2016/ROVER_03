@@ -7,6 +7,7 @@ import java.io.PrintWriter;
 import java.net.InetAddress;
 import java.net.Socket;
 
+import common.Coord;
 import model.RoverQueue;
 
 /* NOTE TO SELF: Need to implement method that filters rovers by tool that is needed either to harvets or drill
@@ -85,8 +86,7 @@ public class RoverClient implements Runnable{
 					String loc = input.readLine();
 					String parts[] = loc.split(" ");
 					if(!parts[0].equals("ROCK")){
-						queue.addLocation("LOC " + parts[2] + " " + parts[3]);
-						System.out.println("LOC " + parts[2] + " " + parts[3]);
+						queue.addLocation(new Coord(Integer.parseInt(parts[2]),Integer.parseInt(parts[3])));
 					}
 				}
 

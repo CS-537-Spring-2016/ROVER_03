@@ -116,12 +116,12 @@ public class RoverServer implements Runnable{
 	 * LOC 35 65 is the string from the server and 1 is the index of the rover in 
 	 * your array list.
 	 * */
-	public void sendLOC(String location){
-		int index = getIndex(location);
-		rovers.get(index).send(getLocation(location));
-		roverQueue.addLocation(getLocation(location));
-		roverQueue.displayLocation();
-	}
+//	public void sendLOC(String location){
+//		int index = getIndex(location);
+//		rovers.get(index).send(getLocation(location));
+//		roverQueue.addLocation(getLocation(location));
+//		roverQueue.displayLocation();
+//	}
 	
 	private int getIndex(String location){
 		/* Splits the location string which has the form "LOC 35 65 1" into an array of

@@ -51,15 +51,15 @@ public class ROVER_110{
 		new Thread(server).start();
 		server.connectTo("127.0.0.1", 9000);
 		/****** Testing to see if other rover gets there locations *************/
-		server.sendLOC("LOC 30 21 0");
-		server.sendLOC("LOC 5 32 0");
-		server.sendLOC("LOC 15 36 0");
-		server.sendLOC("LOC 17 36 0");
-		server.sendLOC("LOC 19 0 0");
-		server.sendLOC("LOC 24 13 0");
-		server.sendLOC("LOC 17 12 0");
-		server.sendLOC("LOC 4 20 0");
-		server.sendLOC("LOC 10 23 0");
+//		server.sendLOC("LOC 30 21 0");
+//		server.sendLOC("LOC 5 32 0");
+//		server.sendLOC("LOC 15 36 0");
+//		server.sendLOC("LOC 17 36 0");
+//		server.sendLOC("LOC 19 0 0");
+//		server.sendLOC("LOC 24 13 0");
+//		server.sendLOC("LOC 17 12 0");
+//		server.sendLOC("LOC 4 20 0");
+//		server.sendLOC("LOC 10 23 0");
 
 
 		/**********************************************************************/
