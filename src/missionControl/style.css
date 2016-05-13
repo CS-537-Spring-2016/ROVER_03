@@ -1,0 +1,52 @@
+.rock {
+	-fx-background-color: #204a87;
+}
+
+.sand {
+	-fx-background-color: #c4a000;
+}
+
+.gravel {
+	-fx-background-color: #babdb6;
+}
+
+.abyss {
+	-fx-background-color: #000000;
+}
+
+.dirt {
+	-fx-background-color: #eeeeec;
+}
+
+.grid {
+	-fx-border-color: #d3d7cf;
+	-fx-padding: 10px;
+	-fx-font-size: 200%;
+	-fx-text-fill: #000000;
+}
+
+.missionControl {
+	-fx-text-fill: #c0c0c0;
+	-fx-effect: innershadow(three-pass-box, black, 6, 0.0, 0, 2);
+	-fx-font: 50px Monospace;
+	-fx-padding: 50px;
+}
+
+.gui {
+	-fx-background-image: url("background.jpg");
+}
+
+.console {
+	-fx-background-color: #000000;
+}
+
+.taskTitle {
+	-fx-text-fill: #73d216;
+	-fx-font: 15px Monospace;
+	-fx-padding: 10px;
+}
+
+.destination{
+	-fx-text-fill: #ffffff;
+	-fx-font: 12px Monospace;
+}
