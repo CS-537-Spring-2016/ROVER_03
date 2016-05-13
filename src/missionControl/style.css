@@ -21,8 +21,15 @@
 .grid {
 	-fx-border-color: #d3d7cf;
 	-fx-padding: 10px;
-	-fx-font-size: 200%;
+	-fx-font-size: 100%;
 	-fx-text-fill: #000000;
+}
+
+.rover{
+	-fx-padding: 10px;
+	-fx-font-size: 150%;
+	-fx-font-weight: bolder;
+	-fx-text-fill: #d3d7cf;
 }
 
 .missionControl {
@@ -50,7 +57,7 @@
 	-fx-padding: 0 0 0 20px;
 }
 
-.destination{
+.consoleText{
 	-fx-text-fill: #ffffff;
 	-fx-font: 12px Monospace;
 }

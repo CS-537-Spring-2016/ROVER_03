@@ -2,7 +2,7 @@ package missionControl;
 
 import java.awt.geom.Point2D;
 import java.io.IOException;
-import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 import common.MapTile;
@@ -19,7 +19,10 @@ import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
+import javafx.scene.shape.Circle;
 import javafx.stage.Stage;
 import model.RoverQueue;
 import swarmBots.ROVER_03;
@@ -30,12 +33,16 @@ public class MissionControl extends Application{
 	private ROVER_03 client;
 	private RoverQueue queue;
 	private Tracker tracker;
-	private ScanMap map;
+	private ScanMap map = null;
 	private Map<String,Integer> cargoList;
 
 	@Override
 	public void start(Stage primaryStage) throws IOException, InterruptedException{
-		client = new ROVER_03();
+		List<String> parameters = getParameters().getRaw();
+		if(parameters.isEmpty())
+			client = new ROVER_03("127.0.0.1");				/* Default port is local host */
+		else 
+			client = new ROVER_03(parameters.get(0));		/* Allows user to enter any IP on console */
 
 		new Thread (new Runnable(){
 
@@ -50,7 +57,8 @@ public class MissionControl extends Application{
 
 		}).start();
 
-		map = client.getScanMap();
+		/* Since objects are passed by reference, we get the reference to the following objects from
+		 * the ROVER_03 class in order to keep the GUI updated in case of any changes in any of these objects */
 		queue = client.getQueue();
 		tracker = client.getTracker();
 		cargoList = client.getCargoList();
@@ -58,159 +66,57 @@ public class MissionControl extends Application{
 
 		BorderPane bp = new BorderPane();
 		bp.getStyleClass().add("gui");
-		Scene scene = new Scene(bp, 800, 750);
-
 		bp.getStylesheets().add("missionControl/style.css");
+		Scene scene = new Scene(bp, 800, 750);
+		
 		Label sceneTitle = new Label("Mission Control\n");
 		sceneTitle.getStyleClass().add("missionControl");
-		HBox hb = new HBox();
-		hb.getChildren().add(sceneTitle);
-		hb.setAlignment(Pos.BOTTOM_CENTER);
+		HBox title = new HBox();
+		title.getChildren().add(sceneTitle);
+		title.setAlignment(Pos.BOTTOM_CENTER);
 
-		bp.setTop(hb);
-		//sceneTitle.getStyleClass().add("titleText");
+		bp.setTop(title);
 		bp.setLeft(setTaskModule());
-		HBox console = new HBox();
+		bp.setBottom(setConsoleView());
+		bp.setCenter(getVisualFeed());
 
-		VBox cargo = new VBox();
-		HBox titleCargo = new HBox();
-		Label ti = new Label("\nROVER_03 CARGO:\n");
-		ti.getStyleClass().add("destination");
-		titleCargo.getChildren().add(ti);
-		titleCargo.setAlignment(Pos.CENTER);
-		cargo.setMinWidth(350);
-		HBox hb4 = new HBox();
-		hb4.setAlignment(Pos.CENTER);
-		hb4.setSpacing(20);
-		cargo.getChildren().addAll(titleCargo, hb4);
+		primaryStage.setTitle("Mission Control");
+		primaryStage.setResizable(false);
+		primaryStage.setScene(scene);
+		primaryStage.show();
 
-		HBox destination = new HBox();
-		destination.setMinWidth(225);
+	}
+	
+	private GridPane getVisualFeed(){
+		GridPane feed = new GridPane();
+		feed.setAlignment(Pos.BOTTOM_LEFT);
 
-		//while(client.getRover().getTools() == null || client.getRover().getDriveType() == null);
-		
-		VBox equipment = new VBox();
-		Label t = new Label("\nROVER_03 EQUIPMENT:\n");
-		t.getStyleClass().add("destination");
-		Label drive = new Label("DRIVE TYPE: " + client.getRover().getDriveType());
-		drive.getStyleClass().add("destination");
-		Label tool1 = new Label("TOOL 1: " + client.getRover().getTools().get(0));
-		tool1.getStyleClass().add("destination");
-		Label tool2 = new Label("TOOL 2: " + client.getRover().getTools().get(1));
-		tool2.getStyleClass().add("destination");
-		equipment.getChildren().addAll(t,drive,tool1,tool2);
-		equipment.setMinWidth(225);
+		while (map == null)
+			map = client.getScanMap();				// Loop until there is map 
 
-		console.setMinWidth(800);
-		console.setMinHeight(125);
-		console.getStyleClass().add("console");
-		console.getChildren().addAll(cargo, destination,equipment);
-		bp.setBottom(console);
-
-		new Thread(new Runnable() {
-			@Override
-			public void run() {
-				while (true){
-					try {
-						Thread.sleep(1000);
-					} catch (InterruptedException e) {
-						e.printStackTrace();
-					}
-					//queue = client.getQueue();
-					Platform.runLater(new Runnable(){
-						@Override
-						public void run(){
-							hb4.getChildren().clear();
-							VBox one = new VBox();
-							VBox two = new VBox();
-							Label organic = new Label("ORGANIC: " + cargoList.get("ORGANIC"));
-							organic.getStyleClass().add("destination");
-							Label radioactive = new Label("RADIOACTIVE: " + cargoList.get("RADIOACTIVE"));
-							radioactive.getStyleClass().add("destination");
-							Label crystal = new Label("CRYSTAL: " + cargoList.get("CRYSTAL"));
-							crystal.getStyleClass().add("destination");
-							Label mineral = new Label("MINERAL: " + cargoList.get("MINERAL"));
-							mineral.getStyleClass().add("destination");
-							one.getChildren().addAll(organic,radioactive);
-							two.getChildren().addAll(crystal,mineral);
-							hb4.getChildren().addAll(one,two);
-						}
-					});
-				}
-			}
-		}).start();
-
-		new Thread(new Runnable() {
-			@Override
-			public void run() {
-				while (true){
-					try {
-						Thread.sleep(1000);
-					} catch (InterruptedException e) {
-						e.printStackTrace();
-					}
-					//queue = client.getQueue();
-					Platform.runLater(new Runnable(){
-						@Override
-						public void run(){
-							destination.getChildren().clear();
-							VBox v = new VBox();
-							Label title = new Label("\nROVER_03 TRACKER:\n");
-							title.getStyleClass().add("destination");
-							Label origin = new Label("ORIGIN: [ " + tracker.getStartingPoint().xpos + " , " + tracker.getStartingPoint().ypos + " ]");
-							origin.getStyleClass().add("destination");
-							Label destin = new Label("DESTINATION: [ " + tracker.getDestination().xpos + " , " + tracker.getDestination().ypos + " ]");
-							destin.getStyleClass().add("destination");
-							Label distance = new Label("DISTANCE LEFT: [ " + tracker.getDistanceTracker().xpos + " , " + tracker.getDistanceTracker().ypos + " ]");
-							distance.getStyleClass().add("destination");
-							v.getChildren().addAll(title,origin,destin,distance);
-							destination.getChildren().add(v);
-						}
-					});
-				}
-			}
-		}).start();
-
-		GridPane gp = new GridPane();
-		gp.setAlignment(Pos.BOTTOM_LEFT);
-
-		while (map == null){;			// Will loop until there is map 
-		map = client.getScanMap();
-		}
-
-		MapTile[][] tiles = map.getScanMap(); 
+		/* This loop sets up how the map will look and how many tiles to display*/
 		for(int row = 0; row < 7; row++){
 			for(int column = 0; column < 7; column++){
+				StackPane stack = null;
 				Label tile = new Label("");
 				labels[row][column] = tile;
 				tile.setPrefSize(70, 70);
-				tile.getStyleClass().add("grid");
-
-				if(tiles[row][column].getTerrain() == Terrain.ROCK){
-					tile.getStyleClass().add("rock");
-				}
-				else if(tiles[row][column].getTerrain() == Terrain.NONE){
-					tile.getStyleClass().add("abyss");
-				}
-				else if(tiles[row][column].getTerrain() == Terrain.SAND){
-					tile.getStyleClass().add("sand");
-				}
-				else if(tiles[row][column].getTerrain() == Terrain.GRAVEL){
-					tile.getStyleClass().add("gravel");
-				}
-				else{
-					tile.getStyleClass().add("dirt");
-				}
-
 				if(row == 3 && column == 3){
-					// Image image = new Image(getClass().getResourceAsStream("ROVER_03.png"));
-					labels[row][column].setText("R3");
+					Circle circle = new Circle(25);
+					circle.setFill(Color.CORNFLOWERBLUE);
+					Label text = new Label("03");
+					text.getStyleClass().add("rover");
+					stack = new StackPane();
+					stack.getChildren().addAll(labels[row][column],circle, text);
+					feed.add(stack, row, column);
+					continue;
 				}
 
-				gp.add(labels[row][column], row, column);
+				feed.add(labels[row][column], row, column);
 			}
 		}
 
+		/* This thread will take care of updating the visual feed. */
 		new Thread(new Runnable() {
 			@Override
 			public void run() {
@@ -220,45 +126,32 @@ public class MissionControl extends Application{
 
 					for(int row = 0; row < 7; row++){
 						for(int column = 0; column < 7; column++){
-							if(tiles[row][column].getTerrain() == Terrain.ROCK){
-								labels[row][column].getStyleClass().clear();
-								labels[row][column].getStyleClass().addAll("rock","grid");
-							}
-							else if(tiles[row][column].getTerrain() == Terrain.NONE){
-								labels[row][column].getStyleClass().clear();
-								labels[row][column].getStyleClass().addAll("abyss","grid");	
-							}
-							else if(tiles[row][column].getTerrain() == Terrain.SAND){
-								labels[row][column].getStyleClass().clear();
-								labels[row][column].getStyleClass().addAll("sand","grid");
-							}
-							else if(tiles[row][column].getTerrain() == Terrain.GRAVEL){
-								labels[row][column].getStyleClass().clear();
-								labels[row][column].getStyleClass().addAll("gravel","grid");
-							}
-							else{
-								labels[row][column].getStyleClass().clear();
-								labels[row][column].getStyleClass().addAll("dirt","grid");
-							}
+							labels[row][column].getStyleClass().clear();
+							labels[row][column].getStyleClass().add("grid");
+							if(tiles[row][column].getTerrain() == Terrain.ROCK)
+								labels[row][column].getStyleClass().add("rock");
+							else if(tiles[row][column].getTerrain() == Terrain.NONE)
+								labels[row][column].getStyleClass().add("abyss");	
+							else if(tiles[row][column].getTerrain() == Terrain.SAND)
+								labels[row][column].getStyleClass().add("sand");
+							else if(tiles[row][column].getTerrain() == Terrain.GRAVEL)
+								labels[row][column].getStyleClass().add("gravel");
+							else
+								labels[row][column].getStyleClass().add("dirt");
 						}	
 					}
 					try {
-						Thread.sleep(500);
+						Thread.sleep(1000);					/* Iterate through loop every second */
 					} catch (InterruptedException e) {
 						e.printStackTrace();
 					}
 				}
 			}
 		}).start();
-
-		bp.setCenter(gp);
-
-		primaryStage.setTitle("Mission Control");
-		primaryStage.setResizable(false);
-		primaryStage.setScene(scene);
-		primaryStage.show();
-
+		
+		return feed;
 	}
+	
 
 	private VBox setTaskModule(){
 		/* Contains module title and module contents */
@@ -292,7 +185,7 @@ public class MissionControl extends Application{
 			public void run(){
 				while (true){
 					/* While the rover is online we will have to constantly update the task list on mission control
-					 * however, since this particular piece o code is running on a separate thread we would not be able
+					 * however, since this particular piece of code is running on a separate thread we would not be able
 					 * to access the Application thread. That is why we have to use Platform.runLater */
 					Platform.runLater(new Runnable(){
 						@Override
@@ -329,7 +222,144 @@ public class MissionControl extends Application{
 		return module;
 	}
 	
+	
+	private HBox setConsoleView(){
+		HBox console = new HBox();
+		console.setMinWidth(800);
+		console.setMinHeight(125);
+		console.getStyleClass().add("console");
+		console.getChildren().addAll(setCargoModule(),setDestinationModule(),setEquipmentModule());
+		
+		return console;
+	}
+	
+	private HBox setDestinationModule(){
+		/* Main destination module container */
+		HBox module = new HBox();
+		module.setMinWidth(225);
+		
+		new Thread(new Runnable() {
+			@Override
+			public void run() {
+				while (true){
+					/* While the rover is online we will have to constantly update distance left to destination on mission control
+					 * however, since this particular piece of code is running on a separate thread we would not be able
+					 * to access the Application thread. That is why we have to use Platform.runLater */
+					Platform.runLater(new Runnable(){
+						@Override
+						public void run(){
+							/* Clears contents of main module */
+							module.getChildren().clear();
+							VBox content = new VBox();
+							Label title = new Label("\nROVER_03 TRACKER:\n");
+							title.getStyleClass().add("consoleText");
+							Label origin = new Label("ORIGIN: [ " + tracker.getStartingPoint().xpos + " , " + tracker.getStartingPoint().ypos + " ]");
+							origin.getStyleClass().add("consoleText");
+							Label destin = new Label("DESTINATION: [ " + tracker.getDestination().xpos + " , " + tracker.getDestination().ypos + " ]");
+							destin.getStyleClass().add("consoleText");
+							Label distance = new Label("DISTANCE LEFT: [ " + tracker.getDistanceTracker().xpos + " , " + tracker.getDistanceTracker().ypos + " ]");
+							distance.getStyleClass().add("consoleText");
+							content.getChildren().addAll(title,origin,destin,distance);
+							module.getChildren().add(content);
+						}
+					});
+					
+					try {
+						Thread.sleep(1000);				/* Lopp will iterate every second */
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+					}
+				}
+			}
+		}).start();
+		
+		return module;
+	}
+	
+	private VBox setEquipmentModule(){
+		/* Main equipment module container */
+		VBox module = new VBox();
+		
+		Label moduleTitle = new Label("\nROVER_03 EQUIPMENT:\n");
+		moduleTitle.getStyleClass().add("consoleText");
+		
+		Label drive = new Label("DRIVE TYPE: " + client.getRover().getDriveType());
+		drive.getStyleClass().add("consoleText");
+		Label tool1 = new Label("TOOL 1: " + client.getRover().getTools().get(0));
+		tool1.getStyleClass().add("consoleText");
+		Label tool2 = new Label("TOOL 2: " + client.getRover().getTools().get(1));
+		tool2.getStyleClass().add("consoleText");
+		
+		module.getChildren().addAll(moduleTitle,drive,tool1,tool2);
+		module.setMinWidth(225);
+		return module;
+	}
+	
+	private VBox setCargoModule(){
+		/* Main cargo module container */
+		VBox module = new VBox();
+		module.setMinWidth(350);
+		
+		HBox moduleTitle = new HBox();
+		Label title = new Label("\nROVER_03 CARGO:\n");
+		title.getStyleClass().add("consoleText");
+		moduleTitle.getChildren().add(title);
+		moduleTitle.setAlignment(Pos.CENTER);
+		
+		HBox elements = new HBox();
+		elements.setAlignment(Pos.CENTER);
+		elements.setSpacing(20);
+		
+		/* Places content inside main cargo module */
+		module.getChildren().addAll(moduleTitle, elements);
+		
+		new Thread(new Runnable() {
+			@Override
+			public void run() {
+				while (true){
+					/* While the rover is online we will have to constantly update cargo list on mission control
+					 * however, since this particular piece of code is running on a separate thread we would not be able
+					 * to access the Application thread. That is why we have to use Platform.runLater */
+					Platform.runLater(new Runnable(){
+						@Override
+						public void run(){
+							/* Clears contents inside of the elements container */
+							elements.getChildren().clear();
+							
+							/* We will have two columns each with the value for two of the possible sciences */
+							VBox columnOne = new VBox();
+							VBox columnTwo = new VBox();
+							
+							/* List of different types of science and how much was collected from each */
+							Label organic = new Label("ORGANIC: " + cargoList.get("ORGANIC"));
+							organic.getStyleClass().add("consoleText");
+							Label radioactive = new Label("RADIOACTIVE: " + cargoList.get("RADIOACTIVE"));
+							radioactive.getStyleClass().add("consoleText");
+							Label crystal = new Label("CRYSTAL: " + cargoList.get("CRYSTAL"));
+							crystal.getStyleClass().add("consoleText");
+							Label mineral = new Label("MINERAL: " + cargoList.get("MINERAL"));
+							mineral.getStyleClass().add("consoleText");
+							
+							/* Update elements container */
+							columnOne.getChildren().addAll(organic,radioactive);
+							columnTwo.getChildren().addAll(crystal,mineral);
+							elements.getChildren().addAll(columnOne,columnTwo);
+						}
+					});
+					
+					try {
+						Thread.sleep(1000);				/* Loop will execute every second */
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+					}
+				}
+			}
+		}).start();
+		
+		return module;
+	}
+	
 	public static void main(String args[]) throws IOException, InterruptedException{
-		Application.launch();
+		Application.launch(args);
 	}
 }
