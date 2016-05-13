@@ -26,7 +26,7 @@
 }
 
 .missionControl {
-	-fx-text-fill: #c0c0c0;
+	-fx-text-fill: #eeeeec;
 	-fx-effect: innershadow(three-pass-box, black, 6, 0.0, 0, 2);
 	-fx-font: 50px Monospace;
 	-fx-padding: 50px;
@@ -44,6 +44,10 @@
 	-fx-text-fill: #73d216;
 	-fx-font: 15px Monospace;
 	-fx-padding: 10px;
+}
+
+.tasks {
+	-fx-padding: 0 0 0 20px;
 }
 
 .destination{

@@ -25,7 +25,7 @@ import model.RoverQueue;
 import swarmBots.ROVER_03;
 import trackingUtility.Tracker;
 
-public class MissionControl extends Application {
+public class MissionControl extends Application{
 	private Label[][] labels = new Label[7][7];
 	private ROVER_03 client;
 	private RoverQueue queue;
@@ -69,29 +69,9 @@ public class MissionControl extends Application {
 
 		bp.setTop(hb);
 		//sceneTitle.getStyleClass().add("titleText");
-		
-		VBox vb = new VBox();
-		HBox title = new HBox();
-		Label taskTitle = new Label("ROVER_03: ONLINE");
-		taskTitle.getStyleClass().add("taskTitle");
-		title.getChildren().add(taskTitle);
-		title.setMinWidth(350);
-		title.getStyleClass().add("console");
-		
-		vb.getChildren().add(title);
-		VBox tasks = new VBox();
-		tasks.setAlignment(Pos.CENTER);
-		ScrollPane sp = new ScrollPane();
-		sp.setPrefSize(350, 450);
-		sp.setContent(tasks);
-		vb.getChildren().add(sp);
-		vb.setMinHeight(500);
-		vb.setMinWidth(350);
-		vb.setAlignment(Pos.BOTTOM_RIGHT);
-		bp.setLeft(vb);
-		
+		bp.setLeft(setTaskModule());
 		HBox console = new HBox();
-		
+
 		VBox cargo = new VBox();
 		HBox titleCargo = new HBox();
 		Label ti = new Label("\nROVER_03 CARGO:\n");
@@ -103,9 +83,11 @@ public class MissionControl extends Application {
 		hb4.setAlignment(Pos.CENTER);
 		hb4.setSpacing(20);
 		cargo.getChildren().addAll(titleCargo, hb4);
-		
+
 		HBox destination = new HBox();
 		destination.setMinWidth(225);
+
+		//while(client.getRover().getTools() == null || client.getRover().getDriveType() == null);
 		
 		VBox equipment = new VBox();
 		Label t = new Label("\nROVER_03 EQUIPMENT:\n");
@@ -118,13 +100,13 @@ public class MissionControl extends Application {
 		tool2.getStyleClass().add("destination");
 		equipment.getChildren().addAll(t,drive,tool1,tool2);
 		equipment.setMinWidth(225);
-		
+
 		console.setMinWidth(800);
 		console.setMinHeight(125);
 		console.getStyleClass().add("console");
 		console.getChildren().addAll(cargo, destination,equipment);
 		bp.setBottom(console);
-		
+
 		new Thread(new Runnable() {
 			@Override
 			public void run() {
@@ -157,7 +139,7 @@ public class MissionControl extends Application {
 				}
 			}
 		}).start();
-		
+
 		new Thread(new Runnable() {
 			@Override
 			public void run() {
@@ -188,42 +170,6 @@ public class MissionControl extends Application {
 				}
 			}
 		}).start();
-
-		new Thread(new Runnable() {
-			@Override
-			public void run() {
-				while (true){
-					try {
-						Thread.sleep(1000);
-					} catch (InterruptedException e) {
-						e.printStackTrace();
-					}
-					//queue = client.getQueue();
-					ArrayList<Point2D> destinations = queue.getPositionList();
-					System.out.println("Destination size: " + destinations.size());
-
-					Platform.runLater(new Runnable(){
-						@Override
-						public void run(){
-							tasks.getChildren().clear();
-							for(Point2D destination: destinations){
-								String d = "SCIENCE AT COORDINATE: [ " + (int)destination.getX() + " , " + (int)destination.getY() + " ]";
-								Label task = new Label(d);
-								task.setAlignment(Pos.CENTER);
-								tasks.getChildren().add(task);
-							}
-							
-							if(destinations.isEmpty()){
-								Label task = new Label("WAITING FOR NEW TASKS...");
-								task.setAlignment(Pos.CENTER);
-								tasks.getChildren().add(task);
-							}
-						}
-					});
-				}
-			}
-		}).start();
-
 
 		GridPane gp = new GridPane();
 		gp.setAlignment(Pos.BOTTOM_LEFT);
@@ -314,6 +260,75 @@ public class MissionControl extends Application {
 
 	}
 
+	private VBox setTaskModule(){
+		/* Contains module title and module contents */
+		VBox module = new VBox();
+		module.setMinHeight(500);
+		module.setMinWidth(350);
+		module.setAlignment(Pos.CENTER);
+
+		HBox title = new HBox();
+		Label taskTitle = new Label("ROVER_03: ONLINE");
+		taskTitle.getStyleClass().add("taskTitle");
+		/* Adds label to HBox */
+		title.getChildren().add(taskTitle);
+		title.setMinWidth(350);
+		/* Sets background to #000000 */
+		title.getStyleClass().add("console");
+		
+		/* Will contain all the coordinates received from other Rovers if any */
+		VBox tasks = new VBox();
+		/* Scroll Pane needed in case list of coordinates is long
+		 * The tasks VBox is inside the scroll pane */
+		ScrollPane scrollPane = new ScrollPane();
+		scrollPane.setContent(tasks);
+		scrollPane.setPrefSize(350, 475);
+		
+		/* Place a contents inside main VBox*/
+		module.getChildren().addAll(title,scrollPane);
+
+		new Thread(new Runnable() {
+			@Override
+			public void run(){
+				while (true){
+					/* While the rover is online we will have to constantly update the task list on mission control
+					 * however, since this particular piece o code is running on a separate thread we would not be able
+					 * to access the Application thread. That is why we have to use Platform.runLater */
+					Platform.runLater(new Runnable(){
+						@Override
+						public void run(){
+							/* Clears contents inside of the scroll pane */
+							tasks.getChildren().clear();
+							if(queue.isEmpty()){
+								/* This message will be shown if there is nothing in the queue */
+								Label task = new Label("WAITING FOR NEW TASKS...");
+								task.getStyleClass().add("tasks");
+								tasks.getChildren().add(task);
+							}
+							else
+								for(Point2D destination: queue.getPositionList()){
+									/* Coordinates will be shown for every coordinate in the queue */
+									String display = "RECEIVED COORDINATE: [ " + (int)destination.getX() + " , " + (int)destination.getY() + " ]";
+									Label task = new Label(display);
+									task.getStyleClass().add("tasks");
+									tasks.getChildren().add(task);
+								}
+						}
+					});
+					
+					try {
+						/* This thread will execute every second */
+						Thread.sleep(1000);
+					} catch (Exception e1) {
+						continue;
+					}
+				}
+			}
+		}).start();
+
+		return module;
+	}
+	
 	public static void main(String args[]) throws IOException, InterruptedException{
 		Application.launch();
 	}
