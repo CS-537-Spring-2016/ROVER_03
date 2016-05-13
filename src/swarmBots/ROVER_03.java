@@ -34,7 +34,7 @@ public class ROVER_03{
 
 
 	// port and ip for swarm server we will be connecting to ... change here if necessary 
-	private static final String SERVER_ADDRESS = "localhost";
+	private String SERVER_ADDRESS = "localhost";
 	//private static final String SERVER_ADDRESS = "192.168.1.206";
 	private static final int PORT_ADDRESS = 9537;
 
@@ -50,8 +50,9 @@ public class ROVER_03{
 	private Map<String,Integer> cargo;
 	private static MissionControl mc;
 
-	public ROVER_03() throws IOException, InterruptedException {
+	public ROVER_03(String ip) throws IOException, InterruptedException {
 		rover = new Rover(ROVER_NAME);
+		SERVER_ADDRESS = ip;
 		server = new RoverServer(rover);
 		roverTracker = new Tracker();
 		cargo = new HashMap<>();
