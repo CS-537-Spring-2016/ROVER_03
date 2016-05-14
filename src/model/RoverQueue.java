@@ -2,12 +2,14 @@ package model;
 
 import java.awt.geom.Point2D;
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Iterator;
 
 import common.Coord;
 
 public class RoverQueue {
 	
-	private ArrayList<Point2D> positionList;
+	private HashSet<Point2D> positionList;
 	private Double xPosition;
 	private Double yPosition;
 	private Point2D closestPoint;
@@ -15,7 +17,8 @@ public class RoverQueue {
 	
 	public RoverQueue(){
 		closestPoint = new Point2D.Double();
-		positionList = new ArrayList<Point2D>();
+		positionList = new HashSet<Point2D>();
+		
 		// These are hard coded cordinates but will not be there for final implementation..will be receiving these from other rovers or server target location
 
 //		addLocation("LOC 27 7");
@@ -30,9 +33,17 @@ public class RoverQueue {
 	
 	public void addLocation (Coord location){
 		xPosition = (double) location.xpos;
-		yPosition = (double) location.ypos;;
+		yPosition = (double) location.ypos;
 		Point2D point = new Point2D.Double(xPosition, yPosition);
-		positionList.add(point);	
+		positionList.add(point);
+		
+		//Display all the location in the Rover Queue
+		Iterator<Point2D> iterator = positionList.iterator();
+		while(iterator.hasNext())
+		{
+			System.out.println("The location in the Rover Queue" + iterator.next());
+		}
+			
 	}
 	
 	//finds the closest location from the current location
@@ -81,11 +92,11 @@ public class RoverQueue {
 	}
 	
 
-	public ArrayList<Point2D> getPositionList() {
+	public HashSet<Point2D> getPositionList() {
 		return positionList;
 	}
 
-	public void setPositionList(ArrayList<Point2D> positionList) {
+	public void setPositionList(HashSet<Point2D> positionList) {
 		this.positionList = positionList;
 	}
 
