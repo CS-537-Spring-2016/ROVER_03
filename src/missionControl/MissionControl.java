@@ -56,6 +56,8 @@ public class MissionControl extends Application{
 			}
 
 		}).start();
+		
+		Thread.sleep(2000);						// Thread need to sleep to allow ROVER_03 to get set up
 
 		/* Since objects are passed by reference, we get the reference to the following objects from
 		 * the ROVER_03 class in order to keep the GUI updated in case of any changes in any of these objects */
