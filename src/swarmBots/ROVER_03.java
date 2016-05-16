@@ -21,6 +21,8 @@ import enums.Terrain;
 import missionControl.MissionControl;
 import model.Rover;
 import model.RoverQueue;
+import movement.PathFinder;
+import movement.TileNode;
 import trackingUtility.State;
 import trackingUtility.Tracker;
 
@@ -124,13 +126,13 @@ public class ROVER_03{
 		roverTracker.setTargetLocation(target);
 		startMission(target);
 		
-		/* Puts all the tiles in the target location in the job queue */
-		if(roverTracker.atTargetLocation(roverTracker.getCurrentLocation())){
-			for(int x = -3; x < 4; x ++)
-				for (int y = -3; y < 4; y++)
-					if (!blocked(x,y))
-						server.getQueue().addLocation(new Coord(x + roverTracker.getCurrentLocation().xpos,y + roverTracker.getCurrentLocation().ypos));
-		}
+//		/* Puts all the tiles in the target location in the job queue */
+//		if(roverTracker.atTargetLocation(roverTracker.getCurrentLocation())){
+//			for(int x = -3; x < 4; x ++)
+//				for (int y = -3; y < 4; y++)
+//					if (!blocked(x,y))
+//						server.getQueue().addLocation(new Coord(x + roverTracker.getCurrentLocation().xpos,y + roverTracker.getCurrentLocation().ypos));
+//		}
 		
 		// Start Rover controller press 
 		while (true){ 
@@ -140,7 +142,6 @@ public class ROVER_03{
 	}	
 
 	private void startMission(Coord destination) throws IOException, InterruptedException{
-		getLocation();
 		System.out.println("\nCURRENT LOCATION: " + roverTracker.getCurrentLocation());
 		roverTracker.setStartingPoint(roverTracker.getCurrentLocation());
 		System.out.println("STARTING POINT: " + roverTracker.getStartingPoint());
@@ -148,35 +149,66 @@ public class ROVER_03{
 		System.out.println("DESTINATION: " + destination);
 		roverTracker.setDistanceTracker();
 		System.out.println("DISTANCE: " + roverTracker.getDistanceTracker());
-
-
-		String direction = null;
-
+		PathFinder path = new PathFinder();
+		System.out.println(destination);
+		
 		while(!roverTracker.hasArrived()){
-			direction = resolveDirection();
-			if(direction.equals("E")){
-				System.out.println("HEADED EAST");
-				accelerate(1,0);
-			}
-			if(direction.equals("W")){
-				System.out.println("HEADED WEST");
-				accelerate(-1,0);
-			}
-			if(direction.equals("S")){
-				System.out.println("HEADED SOUTH");
-				accelerate(0,1);
-			}
-			if(direction.equals("N")){
-				System.out.println("HEADED NORTH");
-				accelerate(0,-1);
+			getLocation();
+			ArrayList<TileNode> moves = path.generatePath(roverTracker.getCurrentLocation(), destination, scanMap, 1);
+			int count = 0;
+			for( TileNode t: moves){
+				System.out.println(++count);
+				Coord acceleration = new Coord(t.coordinate.xpos - roverTracker.getCurrentLocation().xpos, t.coordinate.ypos - roverTracker.getCurrentLocation().ypos);
+//				System.out.println(acceleration);
+				if(acceleration.xpos > 0)
+					move("E");
+				else if(acceleration.xpos < 0)
+					move("W");
+				else if(acceleration.ypos > 0)
+					move("S");
+				else if(acceleration.xpos < 0)
+					move("N");
 			}
 		}
 
-		server.getQueue().removeCompletedJob();
-		System.out.println(rover.getName() + " request GATHER");
-		out.println("GATHER");
-		System.out.println("JOB COMPLETED\n");
-		getCargo();
+		
+//		getLocation();
+//		System.out.println("\nCURRENT LOCATION: " + roverTracker.getCurrentLocation());
+//		roverTracker.setStartingPoint(roverTracker.getCurrentLocation());
+//		System.out.println("STARTING POINT: " + roverTracker.getStartingPoint());
+//		roverTracker.setDestination(destination);
+//		System.out.println("DESTINATION: " + destination);
+//		roverTracker.setDistanceTracker();
+//		System.out.println("DISTANCE: " + roverTracker.getDistanceTracker());
+//
+//
+//		String direction = null;
+//
+//		while(!roverTracker.hasArrived()){
+//			direction = resolveDirection();
+//			if(direction.equals("E")){
+//				System.out.println("HEADED EAST");
+//				accelerate(1,0);
+//			}
+//			if(direction.equals("W")){
+//				System.out.println("HEADED WEST");
+//				accelerate(-1,0);
+//			}
+//			if(direction.equals("S")){
+//				System.out.println("HEADED SOUTH");
+//				accelerate(0,1);
+//			}
+//			if(direction.equals("N")){
+//				System.out.println("HEADED NORTH");
+//				accelerate(0,-1);
+//			}
+//		}
+//
+//		server.getQueue().removeCompletedJob();
+//		System.out.println(rover.getName() + " request GATHER");
+//		out.println("GATHER");
+//		System.out.println("JOB COMPLETED\n");
+//		getCargo();
 	}
 
 	/* This method is used to decide what direction the rover will go next */
@@ -294,6 +326,7 @@ public class ROVER_03{
 		out.println("LOC");
 		String results = in.readLine();
 		if (results == null) {
+			System.exit(1);
 			System.out.println(rover.getName() + " check connection to server");
 			results = "";
 		}
@@ -388,6 +421,7 @@ public class ROVER_03{
 
 		String jsonScanMapIn = in.readLine(); //grabs the string that was returned first
 		if(jsonScanMapIn == null){
+			System.exit(1);
 			System.out.println(rover.getName() + " check connection to server");
 			jsonScanMapIn = "";
 		}
@@ -417,9 +451,9 @@ public class ROVER_03{
 		return new Coord(Integer.parseInt(coordinates[1].trim()), Integer.parseInt(coordinates[2].trim()));
 	}
 
-//	public static void main(String args[]) throws IOException, InterruptedException{
-//		ROVER_03 client = new ROVER_03();
-//		client.start();
-//	}
+	public static void main(String args[]) throws IOException, InterruptedException{
+		ROVER_03 client = new ROVER_03("127.0.0.1");
+		client.start();
+	}
 	
 }

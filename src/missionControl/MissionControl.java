@@ -361,7 +361,7 @@ public class MissionControl extends Application{
 		return module;
 	}
 	
-	public static void main(String args[]) throws IOException, InterruptedException{
-		Application.launch(args);
-	}
+//	public static void main(String args[]) throws IOException, InterruptedException{
+//		Application.launch(args);
+//	}
 }
