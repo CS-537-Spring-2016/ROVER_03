@@ -154,20 +154,25 @@ public class ROVER_03{
 		
 		while(!roverTracker.hasArrived()){
 			getLocation();
-			ArrayList<TileNode> moves = path.generatePath(roverTracker.getCurrentLocation(), destination, scanMap, 1);
-			int count = 0;
+			ArrayList<TileNode> moves = path.generatePath(roverTracker.getCurrentLocation(), destination, scanMap, 0);
 			for( TileNode t: moves){
-				System.out.println(++count);
 				Coord acceleration = new Coord(t.coordinate.xpos - roverTracker.getCurrentLocation().xpos, t.coordinate.ypos - roverTracker.getCurrentLocation().ypos);
-//				System.out.println(acceleration);
-				if(acceleration.xpos > 0)
+				if(acceleration.xpos > 0 && acceleration.ypos == 0 ){
+					System.out.println("MOVE EAST");
 					move("E");
-				else if(acceleration.xpos < 0)
+				}
+				else if(acceleration.xpos < 0  && acceleration.ypos == 0){
+					System.out.println("MOVE WEST");
 					move("W");
-				else if(acceleration.ypos > 0)
+				}
+				else if(acceleration.ypos > 0 && acceleration.xpos == 0){
+					System.out.println("MOVE SOUTH");
 					move("S");
-				else if(acceleration.xpos < 0)
+				}
+				else if(acceleration.ypos < 0 && acceleration.xpos == 0){
+					System.out.println("MOVE NORTH");
 					move("N");
+				}
 			}
 		}
 
