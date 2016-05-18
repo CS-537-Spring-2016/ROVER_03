@@ -6,13 +6,14 @@ import common.Coord;
 
 public class TileNode {
 
+	public int bestF = 1000000;
 	private ArrayList<TileNode> children;
 	public boolean visited = false;
 	private TileNode parent;
 	// the movement cost to move from the starting point A to a given square on the grid, following the path generated to get there. 
 	private int g = 10;
 	// the estimated movement cost to move from that given square on the grid to the final destination, also known as the heuristic
-	private int h;
+	public int h;
 	public int f;
 	public Coord coordinate;
 	
@@ -45,5 +46,21 @@ public class TileNode {
 	
 	public void setParent(TileNode parent){
 		this.parent = parent;
+	}
+	
+	public int allVisited(){
+		int count = 0;
+		for(TileNode node : children){
+			if(!node.visited)
+				return count;
+			count++;
+		}	
+		return -1;
+	}
+	
+	public boolean hasChildren(){
+		if(children == null)
+			children = new ArrayList<>();
+		return !children.isEmpty();
 	}
 }

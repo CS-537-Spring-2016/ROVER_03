@@ -31,7 +31,7 @@ public class ROVER_03{
 	/********************************************* Rover Constants ************************************************************/
 
 	private static final String ROVER_NAME = "ROVER_03";
-	private static final int SLEEP_TIME = 1000; // The higher this number is the smaller the number of request sent to server
+	private static final int SLEEP_TIME = 400; // The higher this number is the smaller the number of request sent to server
 	private static final int WAIT_FOR_ROVERS = 20000; 
 
 
@@ -126,13 +126,13 @@ public class ROVER_03{
 		roverTracker.setTargetLocation(target);
 		startMission(target);
 		
-//		/* Puts all the tiles in the target location in the job queue */
-//		if(roverTracker.atTargetLocation(roverTracker.getCurrentLocation())){
-//			for(int x = -3; x < 4; x ++)
-//				for (int y = -3; y < 4; y++)
-//					if (!blocked(x,y))
-//						server.getQueue().addLocation(new Coord(x + roverTracker.getCurrentLocation().xpos,y + roverTracker.getCurrentLocation().ypos));
-//		}
+		/* Puts all the tiles in the target location in the job queue */
+		if(roverTracker.atTargetLocation(roverTracker.getCurrentLocation())){
+			for(int x = -3; x < 4; x ++)
+				for (int y = -3; y < 4; y++)
+					if (!blocked(x,y))
+						server.getQueue().addLocation(new Coord(x + roverTracker.getCurrentLocation().xpos,y + roverTracker.getCurrentLocation().ypos));
+		}
 		
 		// Start Rover controller press 
 		while (true){ 
@@ -175,6 +175,13 @@ public class ROVER_03{
 				}
 			}
 		}
+		
+		path.destination = null;
+		server.getQueue().removeCompletedJob();
+		System.out.println(rover.getName() + " request GATHER");
+		out.println("GATHER");
+		System.out.println("JOB COMPLETED\n");
+		getCargo();
 
 		
 //		getLocation();
