@@ -417,9 +417,17 @@ public class ROVER_03{
 		return new Coord(Integer.parseInt(coordinates[1].trim()), Integer.parseInt(coordinates[2].trim()));
 	}
 
-//	public static void main(String args[]) throws IOException, InterruptedException{
-//		ROVER_03 client = new ROVER_03();
-//		client.start();
-//	}
+	public static void main(String args[]) throws IOException, InterruptedException{
+		ROVER_03 client;
+		if(!(args.length == 0)){
+			// 192.168.1.106
+			client = new ROVER_03(args[0]);
+		} else {
+			client = new ROVER_03("127.0.0.1");
+		}
+		
+		
+		client.start();
+	}
 	
 }
