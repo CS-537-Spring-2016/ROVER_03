@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -21,6 +22,7 @@ import enums.Terrain;
 import missionControl.MissionControl;
 import model.Rover;
 import model.RoverQueue;
+import tasks.Task;
 import trackingUtility.State;
 import trackingUtility.Tracker;
 
@@ -67,19 +69,19 @@ public class ROVER_03{
 	public ScanMap getScanMap(){
 		return scanMap;
 	}
-	
+
 	public RoverQueue getQueue(){
 		return server.getQueue();
 	}
-	
+
 	public Tracker getTracker(){
 		return roverTracker;
 	}
-	
+
 	public Rover getRover(){
 		return rover;
 	}
-	
+
 	public Map<String,Integer> getCargoList(){
 		return cargo;
 	}
@@ -100,7 +102,7 @@ public class ROVER_03{
 				break;
 			}
 		}
-		
+
 		getLocation();
 
 		/* Get equipment listing including drive type */			
@@ -115,37 +117,40 @@ public class ROVER_03{
 		//startMission(new Coord(16,8));
 		//startMission(new Coord(31,9));
 		//startMission(new Coord(31,6));
-		
+
 		getLocation();
-		
+
 		//target_location request
 		out.println("TARGET_LOC");
 		Coord target = extractLOC(in.readLine());
-		roverTracker.setTargetLocation(target);
-		startMission(target);
-		
+
 		/* Puts all the tiles in the target location in the job queue */
-		if(roverTracker.atTargetLocation(roverTracker.getCurrentLocation())){
+		//if(roverTracker.atTargetLocation(roverTracker.getCurrentLocation())){
 			for(int x = -3; x < 4; x ++)
 				for (int y = -3; y < 4; y++)
 					if (!blocked(x,y))
-						server.getQueue().addLocation(new Coord(x + roverTracker.getCurrentLocation().xpos,y + roverTracker.getCurrentLocation().ypos));
-		}
-		
+						server.getQueue().addTask(
+								new Task(
+										"TARGET_LOCATION", 
+										"UNKNOWN", 
+										"UNKNOWN", 
+										new Coord(x + target.xpos,y + target.ypos)));
+		//}
+
 		// Start Rover controller press 
 		while (true){ 
 			if(!server.getQueue().isEmpty())
-				startMission(server.getQueue().closestTargetLocation(roverTracker.getCurrentLocation()));
+				startMission(server.getQueue().closestTask(roverTracker.getCurrentLocation()));
 		}
 	}	
 
-	private void startMission(Coord destination) throws IOException, InterruptedException{
+	private void startMission(Task task) throws IOException, InterruptedException{
 		getLocation();
 		System.out.println("\nCURRENT LOCATION: " + roverTracker.getCurrentLocation());
 		roverTracker.setStartingPoint(roverTracker.getCurrentLocation());
 		System.out.println("STARTING POINT: " + roverTracker.getStartingPoint());
-		roverTracker.setDestination(destination);
-		System.out.println("DESTINATION: " + destination);
+		roverTracker.setDestination(task.getDestination());
+		System.out.println("DESTINATION: " + task.getDestination());
 		roverTracker.setDistanceTracker();
 		System.out.println("DISTANCE: " + roverTracker.getDistanceTracker());
 
@@ -175,8 +180,18 @@ public class ROVER_03{
 		server.getQueue().removeCompletedJob();
 		System.out.println(rover.getName() + " request GATHER");
 		out.println("GATHER");
+		if(!task.getRoverName().equals("TARGET_LOCATION"))
+			sendAcknowledgement(task + " GATHERED");
 		System.out.println("JOB COMPLETED\n");
 		getCargo();
+	}
+
+	/* Used to send message to command center when job is completed */
+	private void sendAcknowledgement(String acknowledgement) throws UnknownHostException, IOException{
+		Socket commandCenter = new Socket("192.168.1.108", 53799); //Do not know if this is the correct ip
+		PrintWriter out = new PrintWriter(commandCenter .getOutputStream());
+		out.print(acknowledgement);
+		commandCenter.close();
 	}
 
 	/* This method is used to decide what direction the rover will go next */
@@ -254,21 +269,21 @@ public class ROVER_03{
 		out.println("MOVE " + direction);
 		getLocation();
 		if(!previousLocation.equals(roverTracker.getCurrentLocation())){		
-		switch(direction.charAt(0)){
-		case('N'):
-			roverTracker.updateYPos(1);
-		break;
-		case('W'):
-			roverTracker.updateXPos(1);
-		break;
-		case('S'):
-			roverTracker.updateYPos(-1);
-		break;
-		case('E'):
-			roverTracker.updateXPos(-1);
-		break;
-		}
-		System.out.println("Distance Left = " + roverTracker.getDistanceTracker().xpos + "," + roverTracker.getDistanceTracker().ypos);
+			switch(direction.charAt(0)){
+			case('N'):
+				roverTracker.updateYPos(1);
+			break;
+			case('W'):
+				roverTracker.updateXPos(1);
+			break;
+			case('S'):
+				roverTracker.updateYPos(-1);
+			break;
+			case('E'):
+				roverTracker.updateXPos(-1);
+			break;
+			}
+			System.out.println("Distance Left = " + roverTracker.getDistanceTracker().xpos + "," + roverTracker.getDistanceTracker().ypos);
 		}
 		Thread.sleep(SLEEP_TIME);
 	}
@@ -343,7 +358,7 @@ public class ROVER_03{
 
 		return returnList;
 	}
-	
+
 	// method to retrieve a list of the rover's equipment from the server
 	public void getCargo() throws IOException {
 		cargo.put("ORGANIC", 0);
@@ -417,17 +432,17 @@ public class ROVER_03{
 		return new Coord(Integer.parseInt(coordinates[1].trim()), Integer.parseInt(coordinates[2].trim()));
 	}
 
-	public static void main(String args[]) throws IOException, InterruptedException{
-		ROVER_03 client;
-		if(!(args.length == 0)){
-			// 192.168.1.106
-			client = new ROVER_03(args[0]);
-		} else {
-			client = new ROVER_03("127.0.0.1");
-		}
-		
-		
-		client.start();
-	}
-	
+//	public static void main(String args[]) throws IOException, InterruptedException{
+//		ROVER_03 client;
+//		if(!(args.length == 0)){
+//			// 192.168.1.106
+//			client = new ROVER_03(args[0]);
+//		} else {
+//			client = new ROVER_03("127.0.0.1");
+//		}
+//
+//
+//		client.start();
+//	}
+
 }

@@ -6,18 +6,19 @@ import java.util.HashSet;
 import java.util.Iterator;
 
 import common.Coord;
+import tasks.Task;
 
 public class RoverQueue {
 	
-	private HashSet<Point2D> positionList;
-	private Double xPosition;
-	private Double yPosition;
-	private Point2D closestPoint;
+	private HashSet<Task> tasks;
+//	private Double xPosition;
+//	private Double yPosition;
+	private Task closestTask = null;
 	 
 	
 	public RoverQueue(){
-		closestPoint = new Point2D.Double();
-		positionList = new HashSet<Point2D>();
+		//closestPoint = new Point2D.Double();
+		tasks = new HashSet<Task>();  // Changed this to task instead
 		
 		// These are hard coded cordinates but will not be there for final implementation..will be receiving these from other rovers or server target location
 
@@ -31,80 +32,85 @@ public class RoverQueue {
 //		addLocation("LOC 90 16");
 	}
 	
-	public void addLocation (Coord location){
-		xPosition = (double) location.xpos;
-		yPosition = (double) location.ypos;
-		Point2D point = new Point2D.Double(xPosition, yPosition);
-		positionList.add(point);
+	public void addTask (Task task){
+//		xPosition = (double) location.xpos;
+//		yPosition = (double) location.ypos;
+//		Point2D point = new Point2D.Double(xPosition, yPosition);
+		tasks.add(task);
 		
-		//Display all the location in the Rover Queue
-		Iterator<Point2D> iterator = positionList.iterator();
-		while(iterator.hasNext())
-		{
-			System.out.println("The location in the Rover Queue" + iterator.next());
-		}
+//		//Display all the location in the Rover Queue
+//		Iterator<Point2D> iterator = positionList.iterator();
+//		while(iterator.hasNext())
+//		{
+//			System.out.println("The location in the Rover Queue" + iterator.next());
+//		}
 			
 	}
 	
 	//finds the closest location from the current location
-	public Coord closestTargetLocation(Coord currentLocation)
+	public Task closestTask(Coord currentLocation)
 	{
-		Double currentXPosition = (double) currentLocation.xpos;
-		Double currentYPosition = (double) currentLocation.ypos;;
-		Point2D point = new Point2D.Double(currentXPosition, currentYPosition);
+//		Double currentXPosition = (double) currentLocation.xpos;
+//		Double currentYPosition = (double) currentLocation.ypos;;
+		Point2D point = new Point2D.Double(currentLocation.xpos, currentLocation.ypos);
 		
-		ArrayList<Double> closestArray = new ArrayList<Double>();
-		ArrayList<Point2D> PointArray = new ArrayList<Point2D>();
-		Double closest = 10000.0;
+//		ArrayList<Double> closestArray = new ArrayList<Double>();
+//		ArrayList<Point2D> PointArray = new ArrayList<Point2D>();
+//		Double closest = 10000.0;
 		
-		for(Point2D pt: positionList)
-		{
-			System.out.println("The distance from :" + point + " to: " + pt + " is: " + point.distance(pt)); 
-			closestArray.add(point.distance(pt));
-			PointArray.add(pt);
-		}
+		Double closest = Double.POSITIVE_INFINITY; 
 		
-		for(int j=0;j<closestArray.size();j++) // finds the shortest distance
-		{
-			if(closestArray != null)
-			if(closestArray.get(j) < closest) 
-			{
-				closest = closestArray.get(j);
-				closestPoint = PointArray.get(j); 
+		for(Task t: tasks){
+			Point2D pt = new Point2D.Double(t.getDestination().xpos, t.getDestination().ypos);
+			Double distanceFromCurr = point.distance(pt);
+			if(distanceFromCurr < closest) {
+				closest = distanceFromCurr;
+				closestTask = t; 
 			}
+			System.out.println("The distance from :" + point + " to: " + " is: " + distanceFromCurr); 
+
+			//closestArray.add(point.distance(pt));
+			//PointArray.add(pt);
 		}
-		System.out.println("The closest distance is:" + closest + " which is at: " + closestPoint);
-		// if the x and y coordinates are required to be extracted to Integer
-		int x = (int)closestPoint.getX();    
-		int y = (int)closestPoint.getY();
+		
+//		for(int j=0;j<closestArray.size();j++) // finds the shortest distance
+//		{
+//			if(closestArray != null)
+//			if(closestArray.get(j) < closest) 
+//			{
+//				closest = closestArray.get(j);
+//				closestPoint = PointArray.get(j); 
+//			}
+//		}
+		System.out.println("The closest distance is:" + closest + " which is at: " + closestTask);
+//		if the x and y coordinates are required to be extracted to Integer
+//		int x = (int)closestPoint.getX();    
+//		int y = (int)closestPoint.getY();
 		//String [] closestLocation = closestPoint.toString().split(" ");
 		
-		return new Coord(x,y);
+		return closestTask;
 	}
 
 	public boolean isEmpty(){
-		return positionList.isEmpty();
+		return tasks.isEmpty();
 	}
 	
 	// need to get correct index
 	public void removeCompletedJob(){
-		positionList.remove(closestPoint);
+		tasks.remove(closestTask);
 	}
 	
-
-	public HashSet<Point2D> getPositionList() {
-		return positionList;
+	public HashSet<Task> getTasks() {
+		return tasks;
 	}
 
-	public void setPositionList(HashSet<Point2D> positionList) {
-		this.positionList = positionList;
+	public void setPositionList(HashSet<Task> tasks) {
+		this.tasks = tasks;
 	}
 
 	public void displayLocation(){
-		for(Point2D str: positionList)
-		{
-			System.out.println("Location from Rover:"+str);
-		}
+		for(Task task: tasks)
+			System.out.println("Location from Rover:" + task.getDestination());
 	}	
 	
 }

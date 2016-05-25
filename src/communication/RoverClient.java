@@ -9,9 +9,8 @@ import java.net.Socket;
 
 import common.Coord;
 import model.RoverQueue;
+import tasks.Task;
 
-/* NOTE TO SELF: Need to implement method that filters rovers by tool that is needed either to harvets or drill
- * and another method that searches from that filtered list the closest rover to my location */
 
 public class RoverClient implements Runnable{
 	private String roverName;
@@ -20,73 +19,44 @@ public class RoverClient implements Runnable{
 	private BufferedReader input;
 	private RoverQueue queue;
 
-	/* This constructor will be used when you want to send a request to establish a connection,
-	 * unlike the other constructor in this class you create the socket in the constructor
-	 * to try to extablish a connection with another rover using the destination IP and 
-	 * destination port.
-	 * */
-	public RoverClient(String ip, int port, String name, RoverQueue queue) throws IOException{
-
-		this.socket = new Socket(ip, port);
-		this.queue = queue;
-		roverName = name;
-	} 
-
 	/* This constructor will be used when someone sent a request to establish a connection,
 	 * the socket argment it takes is the socket that is created by serverSocket.accept()
 	 * which extablishes the connection. So instead of trying to establish a connection in
 	 * this constructor you are just storing a reference to the socket that was created
 	 * by using serverSocket.accept() in the RoverServer class.
 	 * */
-	public RoverClient(Socket socket, String name, RoverQueue queue) throws IOException{
+	public RoverClient(Socket socket, RoverQueue queue) throws IOException{
 
 		this.socket = socket;
 		this.queue = queue;
-		roverName = name;
-
+		roverName = "ROVER_" + (getPort() + "").substring(3);     /* Rover number are the last two digits of the port */ 
+		System.out.println("CONNECTION HAS BEEN ESTABLISHED WITH " + roverName);
 	} 
-
-	// Return rover name
-	public String getRoverName() {
-		return roverName;
-	}
 
 	// Send message to other rover
 	public void send(String message){
 		output.println(message);
 	}
 
-	// return IP address for other rover in the form /xxx.xx.xx.x
-	public InetAddress getIP(){
-		return socket.getInetAddress();
-	}
-
-	// returns port number of other rover
-	public int getPort(){
-		return socket.getPort();
-	}
-
 	@Override
 	public void run() {	// Thread that will listen for incoming messages
 		try {
-			// Instatiates buffered reader and print writer which will be used to send and receive messages through this socket
+			// Instantiates buffered reader and print writer which will be used to send and receive messages through this socket
 			input = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 			output = new PrintWriter(socket.getOutputStream(), true);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 
-		// Sends message to other rover so they know a connection has been extablished
-		//send("You are now connected to " + roverName); CAUSES AN ISSUE NEED TO FIX THIS
-
 		while(true){
 
 			try {
 				if(input.ready()){
 					String loc = input.readLine();
-					String parts[] = loc.split(" ");
-					if(!parts[0].equals("ROCK")){
-						queue.addLocation(new Coord(Integer.parseInt(parts[2]),Integer.parseInt(parts[3])));
+					String parsedInput[] = loc.split(" ");
+					if(!parsedInput[0].equals("ROCK")){
+						Task task = new Task(roverName, parsedInput[0],parsedInput[1],new Coord(Integer.parseInt(parsedInput[2]),Integer.parseInt(parsedInput[3])));
+						queue.addTask(task);
 					}
 				}
 
@@ -94,6 +64,20 @@ public class RoverClient implements Runnable{
 				e.printStackTrace();
 			}
 		}		
+	}
+	
+	
+	
+	/*-------------------------------------------------------------- GETTERS ------------------------------------------------------------*/ 
+		
+	/* Return IP address for other rover in the form /xxx.xx.xx.x */
+	private InetAddress getIP(){
+		return socket.getInetAddress();
+	}
+
+	/* Returns port number of other rover */
+	private int getPort(){
+		return socket.getPort();
 	}
 }
 

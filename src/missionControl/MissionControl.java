@@ -1,6 +1,5 @@
 package missionControl;
 
-import java.awt.geom.Point2D;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
@@ -26,6 +25,7 @@ import javafx.scene.shape.Circle;
 import javafx.stage.Stage;
 import model.RoverQueue;
 import swarmBots.ROVER_03;
+import tasks.Task;
 import trackingUtility.Tracker;
 
 public class MissionControl extends Application{
@@ -201,9 +201,9 @@ public class MissionControl extends Application{
 								tasks.getChildren().add(task);
 							}
 							else
-								for(Point2D destination: queue.getPositionList()){
+								for(Task t: queue.getTasks()){
 									/* Coordinates will be shown for every coordinate in the queue */
-									String display = "RECEIVED COORDINATE: [ " + (int)destination.getX() + " , " + (int)destination.getY() + " ]";
+									String display = "TASK FROM " + t.getRoverName() + ": [ " + t + " ]";
 									Label task = new Label(display);
 									task.getStyleClass().add("tasks");
 									tasks.getChildren().add(task);
