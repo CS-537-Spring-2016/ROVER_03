@@ -19,7 +19,6 @@ import common.MapTile;
 import common.ScanMap;
 import communication.RoverServer;
 import enums.Terrain;
-import missionControl.MissionControl;
 import model.Rover;
 import model.RoverQueue;
 import tasks.Task;
@@ -28,68 +27,45 @@ import trackingUtility.Tracker;
 
 public class ROVER_03{
 
-	/********************************************* Rover Constants ************************************************************/
+	/*--------------------------------------------- CONSTANTS AND VARIABLES ----------------------------------------------------*/
 
 	private static final String ROVER_NAME = "ROVER_03";
 	private static final int SLEEP_TIME = 1000; // The higher this number is the smaller the number of request sent to server
-	private static final int WAIT_FOR_ROVERS = 20000; 
 
-
-	// port and ip for swarm server we will be connecting to ... change here if necessary 
-	private String SERVER_ADDRESS = "localhost";
-	//private static final String SERVER_ADDRESS = "192.168.1.206";
+	// port and ip for swarm server we will be connecting to 
 	private static final int PORT_ADDRESS = 9537;
+	private String SERVER_ADDRESS;
 
-	/*************************************************************************************************************************/
+	private Rover rover;
 
 	// Buffered Reader used to receive responses from server, Print Writer used to send request to server
 	private BufferedReader in;
 	private PrintWriter out;
+
+	private Map<String,Integer> cargo;
 	private Tracker roverTracker;
 	private ScanMap scanMap;
-	private Rover rover;
+
 	private RoverServer server;
-	private Map<String,Integer> cargo;
-	private static MissionControl mc;
+
+	/*--------------------------------------------------- ROVER_03 CONSTRUCTOR -----------------------------------------------*/
 
 	public ROVER_03(String ip) throws IOException, InterruptedException {
-		rover = new Rover(ROVER_NAME);
 		SERVER_ADDRESS = ip;
-		server = new RoverServer(rover);
+		rover = new Rover(ROVER_NAME);
 		roverTracker = new Tracker();
+		/* Sets cargo all cargo to 0 */
 		cargo = new HashMap<>();
-		cargo.put("ORGANIC", 0);
-		cargo.put("MINERAL", 0);
-		cargo.put("RADIOACTIVE", 0);
-		cargo.put("CRYSTAL", 0);
+		resetCargo();
+		server = new RoverServer(rover);
 		new Thread(server).start();
-		//		Thread.sleep(WAIT_FOR_ROVERS);    // Make thread sleep until all rovers have connected
 	}
 
-	public ScanMap getScanMap(){
-		return scanMap;
-	}
-
-	public RoverQueue getQueue(){
-		return server.getQueue();
-	}
-
-	public Tracker getTracker(){
-		return roverTracker;
-	}
-
-	public Rover getRover(){
-		return rover;
-	}
-
-	public Map<String,Integer> getCargoList(){
-		return cargo;
-	}
-	// Starts rover
+	/* Starts ROVER_03 */
 	@SuppressWarnings("resource")
 	public void start() throws IOException, InterruptedException {
 		// Make connection and initialize streams
-		Socket socket = new Socket(SERVER_ADDRESS, PORT_ADDRESS); // set port here
+		Socket socket = new Socket(SERVER_ADDRESS, PORT_ADDRESS); 
 		in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 		out = new PrintWriter(socket.getOutputStream(), true);
 
@@ -103,47 +79,20 @@ public class ROVER_03{
 			}
 		}
 
-		getLocation();
+		setEquipment();
+		setTargetLocationTasks();
+		System.out.println(rover);
 
-		/* Get equipment listing including drive type */			
-		ArrayList<String> equipment = new ArrayList<String>();
-		equipment = getEquipment();
-		rover.setTool(equipment.get(1));
-		rover.setTool(equipment.get(2));
-		rover.setDriveType(equipment.get(0));
-
-		System.out.println("ROVER_03 equipment list " + equipment + "\n");
-
-		//startMission(new Coord(16,8));
-		//startMission(new Coord(31,9));
-		//startMission(new Coord(31,6));
-
-		getLocation();
-
-		//target_location request
-		out.println("TARGET_LOC");
-		Coord target = extractLOC(in.readLine());
-
-		/* Puts all the tiles in the target location in the job queue */
-		//if(roverTracker.atTargetLocation(roverTracker.getCurrentLocation())){
-			for(int x = -3; x < 4; x ++)
-				for (int y = -3; y < 4; y++)
-					if (!blocked(x,y))
-						server.getQueue().addTask(
-								new Task(
-										"TARGET_LOCATION", 
-										"UNKNOWN", 
-										"UNKNOWN", 
-										new Coord(x + target.xpos,y + target.ypos)));
-		//}
-
-		// Start Rover controller press 
+		/* Start ROVER_03 Tasks */ 
 		while (true){ 
 			if(!server.getQueue().isEmpty())
 				startMission(server.getQueue().closestTask(roverTracker.getCurrentLocation()));
 		}
 	}	
 
+	
+	/*----------------------------------------------- METHODS USED FOR MOVEMENT --------------------------------------------------------------*/
+	
 	private void startMission(Task task) throws IOException, InterruptedException{
 		getLocation();
 		System.out.println("\nCURRENT LOCATION: " + roverTracker.getCurrentLocation());
@@ -158,6 +107,12 @@ public class ROVER_03{
 		String direction = null;
 
 		while(!roverTracker.hasArrived()){
+			if(roverTracker.targetInRange() && blocked(roverTracker.getDistanceTracker().xpos, roverTracker.getDistanceTracker().ypos)){
+				server.getQueue().removeCompletedJob();
+				System.out.println("UNABLE TO REACH DESTINATION ... ABORTING MISSION!");
+				return;
+			}
+
 			direction = resolveDirection();
 			if(direction.equals("E")){
 				System.out.println("HEADED EAST");
@@ -183,7 +138,7 @@ public class ROVER_03{
 		if(!task.getRoverName().equals("TARGET_LOCATION"))
 			sendAcknowledgement(task + " GATHERED");
 		System.out.println("JOB COMPLETED\n");
-		getCargo();
+		setCargo();
 	}
 
 	/* Used to send message to command center when job is completed */
@@ -192,6 +147,7 @@ public class ROVER_03{
 		PrintWriter out = new PrintWriter(commandCenter .getOutputStream());
 		out.print(acknowledgement);
 		commandCenter.close();
+		out.close();
 	}
 
 	/* This method is used to decide what direction the rover will go next */
@@ -283,9 +239,8 @@ public class ROVER_03{
 				roverTracker.updateXPos(-1);
 			break;
 			}
-			System.out.println("Distance Left = " + roverTracker.getDistanceTracker().xpos + "," + roverTracker.getDistanceTracker().ypos);
 		}
-		Thread.sleep(SLEEP_TIME);
+		Thread.sleep(SLEEP_TIME);		/* Thread needs to sleep after every move so it does not send too many requests */
 	}
 
 	private boolean blocked(int xOffset, int yOffset){
@@ -303,6 +258,39 @@ public class ROVER_03{
 				|| map[roverX + xOffset][roverY + yOffset].getTerrain() == Terrain.NONE;
 	}
 
+	/*------------------------------------------- SWARM SERVER REQUESTS ----------------------------------------------------*/
+
+	/* Sends request for either CARGO or EQUIPMENT to the swarm server*/
+	@SuppressWarnings("unused")
+	private ArrayList<String> request(String type) throws IOException{
+		Gson gson = new GsonBuilder().setPrettyPrinting().create();
+		out.println(type);
+
+		String jsonEqListIn = in.readLine(); /* Grabs the string that was returned first */
+		if(jsonEqListIn == null){
+			jsonEqListIn = "";
+		}
+		StringBuilder jsonEqList = new StringBuilder();
+		if(jsonEqListIn.startsWith(type)){
+			while (!(jsonEqListIn = in.readLine()).equals(type + "_END")) {
+				if(jsonEqListIn == null)
+					break;
+				jsonEqList.append(jsonEqListIn);
+				jsonEqList.append("\n");
+			}
+
+		} else {
+			/* in case the server call gives unexpected results */
+			clearReadLineBuffer();
+			return null; /* Server response did not start with the type that was requested */
+		}
+		String jsonEqListString = jsonEqList.toString();		
+		ArrayList<String> returnList;		
+		returnList = gson.fromJson(jsonEqListString, new TypeToken<ArrayList<String>>(){}.getType());		
+		return returnList;
+	}
+	
+	
 	/* Returns coordinate object that represents rover's current location */
 	private void getLocation() throws IOException, InterruptedException{
 		Coord previousLocation = roverTracker.getCurrentLocation();
@@ -316,92 +304,15 @@ public class ROVER_03{
 			roverTracker.setCurrentLocation(extractLOC(results));
 		if(!roverTracker.getCurrentLocation().equals(previousLocation)){
 			this.doScan();
-			//scanMap.debugPrintMap();
 		}
 	}
 
-	/************************* Support Methods *****************************/
-
-	private void clearReadLineBuffer() throws IOException{
-		while(in.ready()){
-			in.readLine();	
-		}
-	}
-
-
-	// method to retrieve a list of the rover's equipment from the server
-	private ArrayList<String> getEquipment() throws IOException {
-		Gson gson = new GsonBuilder().setPrettyPrinting().create();
-		out.println("EQUIPMENT");
-
-		String jsonEqListIn = in.readLine(); //grabs the string that was returned first
-		if(jsonEqListIn == null){
-			jsonEqListIn = "";
-		}
-		StringBuilder jsonEqList = new StringBuilder();
-		if(jsonEqListIn.startsWith("EQUIPMENT")){
-			while (!(jsonEqListIn = in.readLine()).equals("EQUIPMENT_END")) {
-				if(jsonEqListIn == null)
-					break;
-				jsonEqList.append(jsonEqListIn);
-				jsonEqList.append("\n");
-			}
-
-		} else {
-			// in case the server call gives unexpected results
-			clearReadLineBuffer();
-			return null; // server response did not start with "EQUIPMENT"
-		}
-		String jsonEqListString = jsonEqList.toString();		
-		ArrayList<String> returnList;		
-		returnList = gson.fromJson(jsonEqListString, new TypeToken<ArrayList<String>>(){}.getType());		
-
-		return returnList;
-	}
-
-	// method to retrieve a list of the rover's equipment from the server
-	public void getCargo() throws IOException {
-		cargo.put("ORGANIC", 0);
-		cargo.put("MINERAL", 0);
-		cargo.put("RADIOACTIVE", 0);
-		cargo.put("CRYSTAL", 0);
-		Gson gson = new GsonBuilder().setPrettyPrinting().create();
-		out.println("CARGO");
-
-		String jsonEqListIn = in.readLine(); //grabs the string that was returned first
-		if(jsonEqListIn == null){
-			jsonEqListIn = "";
-		}
-		StringBuilder jsonEqList = new StringBuilder();
-		if(jsonEqListIn.startsWith("CARGO")){
-			while (!(jsonEqListIn = in.readLine()).equals("CARGO_END")) {
-				if(jsonEqListIn == null)
-					break;
-				jsonEqList.append(jsonEqListIn);
-				jsonEqList.append("\n");
-			}
-
-		} else {
-			// in case the server call gives unexpected results
-			clearReadLineBuffer();
-		}
-		String jsonEqListString = jsonEqList.toString();		
-		ArrayList<String> returnList;		
-		returnList = gson.fromJson(jsonEqListString, new TypeToken<ArrayList<String>>(){}.getType());		
-
-		for(String s : returnList){
-			if(cargo.containsKey(s)){
-				cargo.put(s, cargo.get(s) + 1);
-			}	
-		}
-	}
-
-	// sends a SCAN request to the server and puts the result in the scanMap array
+	/* Sends a SCAN request to the server and puts the result in the scanMap array */
 	public void doScan() throws IOException {
 		Gson gson = new GsonBuilder().setPrettyPrinting().create();
 		out.println("SCAN");
 
-		String jsonScanMapIn = in.readLine(); //grabs the string that was returned first
+		String jsonScanMapIn = in.readLine(); /* Grabs the string that was returned first */
 		if(jsonScanMapIn == null){
 			System.out.println(rover.getName() + " check connection to server");
 			jsonScanMapIn = "";
@@ -413,36 +324,112 @@ public class ROVER_03{
 				jsonScanMap.append("\n");
 			}
 		} else {
-			// in case the server call gives unexpected results
+			/* In case the server call gives unexpected results */
 			clearReadLineBuffer();
-			return; // server response did not start with "SCAN"
+			return; /* Server response did not start with "SCAN" */
 		}
 
 		String jsonScanMapString = jsonScanMap.toString();
 
-		// convert from the json string back to a ScanMap object
+		/* Convert from the json string back to a ScanMap object */
 		scanMap = gson.fromJson(jsonScanMapString, ScanMap.class);		
 	}
 
-
-	/* this takes the LOC response string, parses out the x and x values and returns a Coord 
-	 * object */
-	public static Coord extractLOC(String sStr) {
-		String[] coordinates = sStr.split(" ");
+	/*-------------------------------------------------- SUPPORT METHODS -----------------------------------------------*/
+	
+	private void clearReadLineBuffer() throws IOException{
+		while(in.ready()){
+			in.readLine();	
+		}
+	}
+	
+	/* This takes the LOC response string, parses out the x and y values and returns a Coord object */
+	public static Coord extractLOC(String response) {
+		String[] coordinates = response.split(" ");
 		return new Coord(Integer.parseInt(coordinates[1].trim()), Integer.parseInt(coordinates[2].trim()));
 	}
+	
+	/* ----------------------------------------------------- GETTERS ----------------------------------------------------*/
 
-//	public static void main(String args[]) throws IOException, InterruptedException{
-//		ROVER_03 client;
-//		if(!(args.length == 0)){
-//			// 192.168.1.106
-//			client = new ROVER_03(args[0]);
-//		} else {
-//			client = new ROVER_03("127.0.0.1");
-//		}
-//
-//
-//		client.start();
-//	}
+	public ScanMap getScanMap(){
+		return scanMap;
+	}
+
+	public RoverQueue getQueue(){
+		return server.getQueue();
+	}
+
+	public Tracker getTracker(){
+		return roverTracker;
+	}
+
+	public Rover getRover(){
+		return rover;
+	}
+
+	public Map<String,Integer> getCargoList(){
+		return cargo;
+	}
+
+	/*---------------------------------------------------- SETTERS ------------------------------------------------------*/
+
+	private void setEquipment() throws IOException{
+		/* Get equipment listing including drive type */			
+		ArrayList<String> equipment = new ArrayList<String>();
+		equipment = request("EQUIPMENT");
+		rover.setTool(equipment.get(1));
+		rover.setTool(equipment.get(2));
+		rover.setDriveType(equipment.get(0));
+	}
+
+	private void setCargo() throws IOException{
+		resetCargo();
+		for(String s : request("CARGO")){
+			if(cargo.containsKey(s)){
+				cargo.put(s, cargo.get(s) + 1);
+			}
+		}
+	}
+
+	private void resetCargo(){
+		cargo.put("ORGANIC", 0);
+		cargo.put("MINERAL", 0);
+		cargo.put("RADIOACTIVE", 0);
+		cargo.put("CRYSTAL", 0);
+	}
+	
+	private void setTargetLocationTasks() throws IOException{
+		/* Target_location request */
+		out.println("TARGET_LOC");
+		Coord target = extractLOC(in.readLine());
+
+		/* Will add every location in the target location to the queue regardless of the terrain it is on*/
+		for(int x = -3; x < 4; x ++)
+			for (int y = -3; y < 4; y++)
+				server.getQueue().addTask(
+						new Task(
+								"TARGET_LOCATION", 
+								"UNKNOWN", 				/* UNKNOWN TERRAIN */
+								"UNKNOWN",				/* UNKNOWN SCIENCE */
+								new Coord(x + target.xpos,y + target.ypos)));
+	}
+
+
+	/* --------------------------------- UNCOMMENT THIS TO RUN WITHOUT GUI -------------------------------------------------*/
+
+	/*	
+	 	public static void main(String args[]) throws IOException, InterruptedException{
+			ROVER_03 client;
+			if(!(args.length == 0)){
+				// 192.168.1.106
+				client = new ROVER_03(args[0]);
+			} else {
+				client = new ROVER_03("127.0.0.1");
+			}
+
+
+			client.start();
+		} 
+	 */
 
 }

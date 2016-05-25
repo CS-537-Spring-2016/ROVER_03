@@ -13,8 +13,6 @@ import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
-//import javafx.scene.image.Image;
-//import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
@@ -39,11 +37,7 @@ public class MissionControl extends Application{
 	@Override
 	public void start(Stage primaryStage) throws IOException, InterruptedException{
 		List<String> parameters = getParameters().getRaw();
-		if(parameters.isEmpty())
-			client = new ROVER_03("127.0.0.1");				/* Default port is local host */
-		else 
-			client = new ROVER_03(parameters.get(0));		/* Allows user to enter any IP on console */
-
+		client = new ROVER_03((parameters.isEmpty())?"127.0.0.1": parameters.get(0));
 		new Thread (new Runnable(){
 
 			@Override
@@ -267,7 +261,7 @@ public class MissionControl extends Application{
 					});
 					
 					try {
-						Thread.sleep(1000);				/* Lopp will iterate every second */
+						Thread.sleep(1000);				/* Loop will iterate every second */
 					} catch (InterruptedException e) {
 						e.printStackTrace();
 					}

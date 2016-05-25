@@ -13,13 +13,11 @@ import model.RoverQueue;
 public class RoverServer implements Runnable{
 
 	/* Rover name and listening port
-	 * If this code is shared with a rover in blue corporation this constant has to be changed
 	 * This port number only applies to ROVER_03
 	 */
 	private final static int PORT = 53703;
 	
 	private RoverQueue roverQueue;
-	
 	private Rover rover;
 	
 	// List of connected rover
