@@ -93,26 +93,38 @@ public class ROVER_03{
 	
 	/*----------------------------------------------- METHODS USED FOR MOVEMENT --------------------------------------------------------------*/
 	
+	/* ROVER_03 starts moving towars destination coordinate specified in Task */
 	private void startMission(Task task) throws IOException, InterruptedException{
+		// Requests current location from swarm server and sets current location in the rover tracker instance
 		getLocation();
+		
 		System.out.println("\nCURRENT LOCATION: " + roverTracker.getCurrentLocation());
+		
 		roverTracker.setStartingPoint(roverTracker.getCurrentLocation());
 		System.out.println("STARTING POINT: " + roverTracker.getStartingPoint());
+		
 		roverTracker.setDestination(task.getDestination());
 		System.out.println("DESTINATION: " + task.getDestination());
+		
 		roverTracker.setDistanceTracker();
 		System.out.println("DISTANCE: " + roverTracker.getDistanceTracker());
 
-
+		/* Location is not se in the beginning */
 		String direction = null;
 
 		while(!roverTracker.hasArrived()){
+			
+			/* This if statement applies to the locations that were set for the target location when the rover went online since 
+			 * the rover places them in the queue regardless of the terrain. What this if statement looks for is if the rover can see its
+			 * destination in its scan, if it can it checks whether or not the destination is on rocky terrain or has a rover on it, if it does 
+			 * the the mission is aborted */
 			if(roverTracker.targetInRange() && blocked(roverTracker.getDistanceTracker().xpos, roverTracker.getDistanceTracker().ypos)){
 				server.getQueue().removeCompletedJob();
 				System.out.println("UNABLE TO REACH DESTINATION ... ABORTING MISSION!");
 				return;
 			}
-
+			
+			/* Call resolveDirection() which decides what direction rover should go first */
 			direction = resolveDirection();
 			if(direction.equals("E")){
 				System.out.println("HEADED EAST");
@@ -133,23 +145,16 @@ public class ROVER_03{
 		}
 
 		server.getQueue().removeCompletedJob();
-		System.out.println(rover.getName() + " request GATHER");
+		System.out.println("SENDING GATHER REQUEST ");
 		out.println("GATHER");
+		/* Send awknowledgement to command center */
 		if(!task.getRoverName().equals("TARGET_LOCATION"))
 			sendAcknowledgement(task + " GATHERED");
 		System.out.println("JOB COMPLETED\n");
 		setCargo();
 	}
-
-	/* Used to send message to command center when job is completed */
-	private void sendAcknowledgement(String acknowledgement) throws UnknownHostException, IOException{
-		Socket commandCenter = new Socket("192.168.1.108", 53799); //Do not know if this is the correct ip
-		PrintWriter out = new PrintWriter(commandCenter .getOutputStream());
-		out.print(acknowledgement);
-		commandCenter.close();
-		out.close();
-	}
-
+	
+	
 	/* This method is used to decide what direction the rover will go next */
 	private String resolveDirection(){
 		if(roverTracker.getDistanceTracker().xpos > 0)
@@ -162,16 +167,20 @@ public class ROVER_03{
 			return "N";
 		return null;
 	}
-
+	
+	
 	private void accelerate(int xVelocity, int yVelocity) throws IOException, InterruptedException{
 
+		/* The direction here is decided based on the entries for the x and y velocity, this is a shortened version of 
+		 * if else statements */
 		String direction = (xVelocity == 1)?"E":(xVelocity == -1)?"W":(yVelocity == 1)?"S":(yVelocity == -1)?"N":null;
+		/* Needs to choose a condition for the while loop so there is a shorthand if statement in the while condition*/
 		while((xVelocity != 0)?roverTracker.getDistanceTracker().xpos != 0:roverTracker.getDistanceTracker().ypos != 0){
-			if(!blocked(xVelocity,yVelocity)) move(direction);
+			if(!blocked(xVelocity,yVelocity)) move(direction); /* If it is not blocked it moves in the direction that was decided */
 			else {
 				roverTracker.addMarker(new State(new Coord(roverTracker.getCurrentLocation().xpos + xVelocity, roverTracker.getCurrentLocation().ypos + yVelocity)));
 				roverTracker.setLastSuccessfulMove(roverTracker.getCurrentLocation());
-				goAround(direction);
+				goAround(direction); /* Direction is the direction the rover was headed when it got blocked */
 			}
 			getLocation();
 		}
@@ -195,13 +204,13 @@ public class ROVER_03{
 				continue;
 			}
 
-			if((!blocked(0,-1) && (blocked(-1,1, centerIndex, centerIndex - 1) || blocked(-1,-1))) && !previousDirection.equals("S") && roverTracker.getCurrentLocation().ypos - 1 != -1){
+			if((!blocked(0,-1) && (blocked(-1,1, centerIndex, centerIndex - 1) || blocked(-1,-1))) && !previousDirection.equals("S")){
 				move("N");
 				previousDirection = "N";
 				continue;
 			}
 
-			if((!blocked(-1,0) && (blocked(1,1, centerIndex - 1, centerIndex) || blocked(-1,1))) && !previousDirection.equals("E") && roverTracker.getCurrentLocation().xpos - 1 != -1){
+			if((!blocked(-1,0) && (blocked(1,1, centerIndex - 1, centerIndex) || blocked(-1,1))) && !previousDirection.equals("E")){
 				move("W");
 				previousDirection = "W";
 				continue;
@@ -256,6 +265,15 @@ public class ROVER_03{
 		return map[roverX + xOffset][roverY + yOffset].getHasRover() 
 				|| map[roverX + xOffset][roverY + yOffset].getTerrain() == Terrain.ROCK
 				|| map[roverX + xOffset][roverY + yOffset].getTerrain() == Terrain.NONE;
+	}
+	
+	/* Used to send message to command center when job is completed */
+	private void sendAcknowledgement(String acknowledgement) throws UnknownHostException, IOException{
+		Socket commandCenter = new Socket("192.168.1.108", 53799); //Do not know if this is the correct ip
+		PrintWriter out = new PrintWriter(commandCenter .getOutputStream());
+		out.print(acknowledgement);
+		commandCenter.close();
+		out.close();
 	}
 
 	/*------------------------------------------- SWARM SERVER REQUESTS ----------------------------------------------------*/

@@ -2,7 +2,6 @@ package model;
 
 import java.awt.geom.Point2D;
 import java.util.ArrayList;
-import java.util.HashSet;
 
 import common.Coord;
 import tasks.Task;
@@ -12,7 +11,6 @@ public class RoverQueue {
 	private ArrayList<Task> tasks;
 	private Task closestTask = null;
 	 
-	
 	public RoverQueue(){
 		tasks = new ArrayList<Task>();
 	}
