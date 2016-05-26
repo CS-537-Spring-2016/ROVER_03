@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
-import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -22,7 +21,6 @@ import enums.Terrain;
 import model.Rover;
 import model.RoverQueue;
 import tasks.Task;
-import trackingUtility.State;
 import trackingUtility.Tracker;
 
 public class ROVER_03{
@@ -34,6 +32,8 @@ public class ROVER_03{
 
 	// port and ip for swarm server we will be connecting to 
 	private static final int PORT_ADDRESS = 9537;
+	private static final String COMMAND_CENTER_IP = "127.0.0.1";
+	private static final int COMMAND_CENTER_PORT = 53799;
 	private String SERVER_ADDRESS;
 
 	private Rover rover;
@@ -179,22 +179,24 @@ public class ROVER_03{
 		while((xVelocity != 0)?roverTracker.getDistanceTracker().xpos != 0:roverTracker.getDistanceTracker().ypos != 0){
 			if(!blocked(xVelocity,yVelocity)) move(direction); /* If it is not blocked it moves in the direction that was decided */
 			else {
-				roverTracker.addMarker(new State(new Coord(roverTracker.getCurrentLocation().xpos + xVelocity, roverTracker.getCurrentLocation().ypos + yVelocity)));
-				roverTracker.setLastSuccessfulMove(roverTracker.getCurrentLocation());
+				roverTracker.addMarker(new Coord(roverTracker.getCurrentLocation().xpos + xVelocity, roverTracker.getCurrentLocation().ypos + yVelocity));
 				goAround(direction); /* Direction is the direction the rover was headed when it got blocked */
 			}
 			getLocation();
 		}
 	}
 
+	/* Major flaw with this movement algorithm, it will go the long way around even if there is a shorter way and it also
+	 * will be trapped going in a big circle if it is blocked by the bounds of the map, solutions might be using D* Lite instead or
+	 * making a task time out method that causes the rover to give up on a task if a certain amount of time has elapsed  */
 	private void goAround(String direction) throws InterruptedException, IOException{
 
 		String previousDirection = "";
 		String direction1 = previousDirection;
-		while((roverTracker.getCurrentLocation().ypos > roverTracker.peekMarker().getY() && direction.equals("N")) ||
-				(roverTracker.getCurrentLocation().xpos > roverTracker.peekMarker().getX() && direction.equals("W")) ||
-				(roverTracker.getCurrentLocation().ypos < roverTracker.peekMarker().getY() && direction.equals("S")) ||
-				(roverTracker.getCurrentLocation().xpos < roverTracker.peekMarker().getX() && direction.equals("E"))){
+		while((roverTracker.getCurrentLocation().ypos > roverTracker.peekMarker().ypos && direction.equals("N")) ||
+				(roverTracker.getCurrentLocation().xpos > roverTracker.peekMarker().xpos && direction.equals("W")) ||
+				(roverTracker.getCurrentLocation().ypos < roverTracker.peekMarker().ypos && direction.equals("S")) ||
+				(roverTracker.getCurrentLocation().xpos < roverTracker.peekMarker().xpos && direction.equals("E"))){
 			getLocation();
 			int centerIndex = (scanMap.getEdgeSize() - 1)/2;
 			direction1 = previousDirection;
@@ -223,13 +225,14 @@ public class ROVER_03{
 				continue;
 			}
 
+			/* This makes sure that rover is able to get out of hallways with no exit */
 			if(direction1.equals(previousDirection)){
 				previousDirection = "";
 			}
 		}
 	}
 
-
+	/* Sends move request to server and updates distance tracker */
 	private void move(String direction) throws IOException, InterruptedException{
 		Coord previousLocation = roverTracker.getCurrentLocation();
 		out.println("MOVE " + direction);
@@ -261,6 +264,7 @@ public class ROVER_03{
 				|| map[centerIndex + xOffset][centerIndex + yOffset].getTerrain() == Terrain.NONE;
 	}
 
+	/* This blocked method is used in the go around method, in order to look ahead */
 	private boolean blocked(int xOffset, int yOffset, int roverX, int roverY){
 		MapTile[][] map = scanMap.getScanMap();
 		return map[roverX + xOffset][roverY + yOffset].getHasRover() 
@@ -269,13 +273,18 @@ public class ROVER_03{
 	}
 	
 	/* Used to send message to command center when job is completed */
-	private void sendAcknowledgement(String acknowledgement) throws UnknownHostException, IOException{
-		Socket commandCenter = new Socket("127.0.0.1", 53799); //Do not know if this is the correct ip
+	private void sendAcknowledgement(String acknowledgement){
+		try{
+		Socket commandCenter = new Socket(COMMAND_CENTER_IP, COMMAND_CENTER_PORT);
 		PrintWriter out = new PrintWriter(commandCenter .getOutputStream());
 		out.print(acknowledgement);
 		out.flush();
 		commandCenter.close();
 		out.close();
+		}catch(Exception e){
+			System.out.println("ERROR: UNABLE TO CONNECT TO COMMAND CENTER");
+			return;
+		}
 	}
 
 	/*------------------------------------------- SWARM SERVER REQUESTS ----------------------------------------------------*/

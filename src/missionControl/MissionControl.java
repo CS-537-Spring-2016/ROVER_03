@@ -26,7 +26,14 @@ import swarmBots.ROVER_03;
 import tasks.Task;
 import trackingUtility.Tracker;
 
+/* Mission Control displays everything that is displayed on the console in a gui including 
+ * everything that the rover can scan */
 public class MissionControl extends Application{
+	/* Main method to start rover and mission control */
+	public static void main(String args[]) throws IOException, InterruptedException{
+		Application.launch(args);
+	}
+	
 	private Label[][] labels = new Label[7][7];
 	private ROVER_03 client;
 	private RoverQueue queue;
@@ -137,7 +144,7 @@ public class MissionControl extends Application{
 						}	
 					}
 					try {
-						Thread.sleep(1000);					/* Iterate through loop every second */
+						Thread.sleep(300);					
 					} catch (InterruptedException e) {
 						e.printStackTrace();
 					}
@@ -261,7 +268,7 @@ public class MissionControl extends Application{
 					});
 					
 					try {
-						Thread.sleep(1000);				/* Loop will iterate every second */
+						Thread.sleep(300);				/* Loop will iterate every second */
 					} catch (InterruptedException e) {
 						e.printStackTrace();
 					}
@@ -353,9 +360,5 @@ public class MissionControl extends Application{
 		}).start();
 		
 		return module;
-	}
-	
-	public static void main(String args[]) throws IOException, InterruptedException{
-		Application.launch(args);
 	}
 }

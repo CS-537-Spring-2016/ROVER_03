@@ -8,7 +8,7 @@ public class Tracker {
 
 	// Will have location coordinate and direction rover went in a string  
 	private Coord currentLocation;
-	private Stack<State> markers;
+	private Stack<Coord> markers;
 	
 	private Coord startingPoint;
 	private Coord destination;
@@ -32,7 +32,7 @@ public class Tracker {
 	}
 
 	// It just peeks the last point where rover got stuck
-	public State peekMarker(){
+	public Coord peekMarker(){
 		return markers.peek();
 	}
 
@@ -41,11 +41,11 @@ public class Tracker {
 		updateYPos(lastSuccessfulMove.ypos - currentLocation.ypos);
 	}
 
-	public State removeMarker(){
+	public Coord removeMarker(){
 		return markers.pop();
 	}
 
-	public void addMarker(State marker){
+	public void addMarker(Coord marker){
 		markers.add(marker);
 	}
 

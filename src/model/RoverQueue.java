@@ -46,7 +46,6 @@ public class RoverQueue {
 		return tasks.isEmpty();
 	}
 	
-	// need to get correct index
 	public void removeCompletedJob(){
 		tasks.remove(closestTask);
 	}

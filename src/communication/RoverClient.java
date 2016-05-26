@@ -4,14 +4,13 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
-import java.net.InetAddress;
 import java.net.Socket;
 
 import common.Coord;
 import model.RoverQueue;
 import tasks.Task;
 
-
+/* NOTE: We no longer need this class because none of the rovers are keeping the connection alive, no threads need to be made */
 public class RoverClient implements Runnable{
 	private String roverName;
 	private Socket socket;
@@ -69,11 +68,6 @@ public class RoverClient implements Runnable{
 	
 	
 	/*-------------------------------------------------------------- GETTERS ------------------------------------------------------------*/ 
-		
-	/* Return IP address for other rover in the form /xxx.xx.xx.x */
-	private InetAddress getIP(){
-		return socket.getInetAddress();
-	}
 
 	/* Returns port number of other rover */
 	private int getPort(){
