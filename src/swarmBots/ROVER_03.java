@@ -147,8 +147,9 @@ public class ROVER_03{
 		server.getQueue().removeCompletedJob();
 		System.out.println("SENDING GATHER REQUEST ");
 		out.println("GATHER");
-		/* Send awknowledgement to command center */
-		if(!task.getRoverName().equals("TARGET_LOCATION"))
+		/* Send acknowledgement to command center */
+		System.out.println(task.getRoverName());
+		if(task.getRoverName().equals("ROVER"))
 			sendAcknowledgement(task + " GATHERED");
 		System.out.println("JOB COMPLETED\n");
 		setCargo();
@@ -269,9 +270,10 @@ public class ROVER_03{
 	
 	/* Used to send message to command center when job is completed */
 	private void sendAcknowledgement(String acknowledgement) throws UnknownHostException, IOException{
-		Socket commandCenter = new Socket("192.168.1.108", 53799); //Do not know if this is the correct ip
+		Socket commandCenter = new Socket("127.0.0.1", 53799); //Do not know if this is the correct ip
 		PrintWriter out = new PrintWriter(commandCenter .getOutputStream());
 		out.print(acknowledgement);
+		out.flush();
 		commandCenter.close();
 		out.close();
 	}

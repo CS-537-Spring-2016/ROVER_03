@@ -13,7 +13,7 @@ public class Task {
 	/*----------------------------------------------- CONSTRUCTOR -------------------------------------------------------*/
 	
 	public Task(String roverName, String terrain, String scienceType, Coord destination){
-		recvFrom = roverName;
+		this.recvFrom = roverName;
 		this.terrain = terrain;
 		this.scienceType = scienceType;
 		this.destination = destination;

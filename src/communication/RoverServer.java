@@ -1,13 +1,15 @@
 package communication;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.ArrayList;
-import java.util.List;
 
+import common.Coord;
 import model.Rover;
 import model.RoverQueue;
+import tasks.Task;
 
 
 public class RoverServer implements Runnable{
@@ -19,9 +21,6 @@ public class RoverServer implements Runnable{
 	
 	private RoverQueue roverQueue;
 	private Rover rover;
-	
-	// List of connected rover
-	private List<RoverClient> rovers;
 
 	private ServerSocket serverSocket;
 
@@ -32,19 +31,25 @@ public class RoverServer implements Runnable{
 		this.rover = rover;
 		System.out.println(this.rover.getName() + " server online...");
 		System.out.println("Waiting for other rovers to connect...");
-		
-		// Array list that keeps track of connected rover
-		rovers = new ArrayList<>();
 	}
 
 	@Override
 	public void run() {	// Thread that continuously listens for incoming connections
+		
+		/* I do not need to create a thread when I receive a connection request because a new connection request is send from other rover
+		 * when a message needs to be sent */
 		while(true){
 			try {
 				Socket socket = serverSocket.accept();
-				RoverClient client = new RoverClient(socket, roverQueue);
-				rovers.add(client);
-				new Thread(client).start(); // instantiates and starts a new thread for a connecting client
+				BufferedReader input = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+				if(input.ready()){
+					String loc = input.readLine();
+					String parsedInput[] = loc.split(" ");
+					if(!parsedInput[0].equals("ROCK")){
+						Task task = new Task("ROVER", parsedInput[0],parsedInput[1],new Coord(Integer.parseInt(parsedInput[2]),Integer.parseInt(parsedInput[3])));
+						roverQueue.addTask(task);
+					}
+				}
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
