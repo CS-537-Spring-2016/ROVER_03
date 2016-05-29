@@ -8,6 +8,7 @@ import java.net.Socket;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Stack;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -20,6 +21,7 @@ import communication.RoverServer;
 import enums.Terrain;
 import model.Rover;
 import model.RoverQueue;
+import movement.PathFinder;
 import tasks.Task;
 import trackingUtility.Tracker;
 
@@ -78,7 +80,7 @@ public class ROVER_03{
 				break;
 			}
 		}
-		
+
 		getLocation();
 		setEquipment();
 		setTargetLocationTasks();
@@ -86,153 +88,61 @@ public class ROVER_03{
 
 		/* Start ROVER_03 Tasks */ 
 		while (true){ 
-			if(!server.getQueue().isEmpty())
-				startMission(server.getQueue().closestTask(roverTracker.getCurrentLocation()));
+		if(!server.getQueue().isEmpty())
+			startMission(server.getQueue().closestTask(roverTracker.getCurrentLocation()));
 		}
 	}	
 
-	
+
 	/*----------------------------------------------- METHODS USED FOR MOVEMENT --------------------------------------------------------------*/
-	
+
 	/* ROVER_03 starts moving towars destination coordinate specified in Task */
 	private void startMission(Task task) throws IOException, InterruptedException{
-		// Requests current location from swarm server and sets current location in the rover tracker instance
-		getLocation();
-		
 		System.out.println("\nCURRENT LOCATION: " + roverTracker.getCurrentLocation());
-		
+
 		roverTracker.setStartingPoint(roverTracker.getCurrentLocation());
 		System.out.println("STARTING POINT: " + roverTracker.getStartingPoint());
-		
+
 		roverTracker.setDestination(task.getDestination());
 		System.out.println("DESTINATION: " + task.getDestination());
-		
+
 		roverTracker.setDistanceTracker();
 		System.out.println("DISTANCE: " + roverTracker.getDistanceTracker());
 
-		/* Location is not se in the beginning */
-		String direction = null;
-
 		while(!roverTracker.hasArrived()){
-			
-			/* This if statement applies to the locations that were set for the target location when the rover went online since 
-			 * the rover places them in the queue regardless of the terrain. What this if statement looks for is if the rover can see its
-			 * destination in its scan, if it can it checks whether or not the destination is on rocky terrain or has a rover on it, if it does 
-			 * the the mission is aborted */
-			if(roverTracker.targetInRange() && blocked(roverTracker.getDistanceTracker().xpos, roverTracker.getDistanceTracker().ypos)){
-				server.getQueue().removeCompletedJob();
-				System.out.println("UNABLE TO REACH DESTINATION ... ABORTING MISSION!");
-				return;
-			}
-			
-			/* Call resolveDirection() which decides what direction rover should go first */
-			direction = resolveDirection();
-			if(direction.equals("E")){
-				System.out.println("HEADED EAST");
-				accelerate(1,0);
-			}
-			if(direction.equals("W")){
-				System.out.println("HEADED WEST");
-				accelerate(-1,0);
-			}
-			if(direction.equals("S")){
-				System.out.println("HEADED SOUTH");
-				accelerate(0,1);
-			}
-			if(direction.equals("N")){
-				System.out.println("HEADED NORTH");
-				accelerate(0,-1);
+			getLocation();
+			ArrayList<Coord> moveList = new PathFinder(scanMap, roverTracker).generatePath(); 
+			for(Coord c:moveList){
+				accelerate(c.xpos,c.ypos);
+				Thread.sleep(SLEEP_TIME);
+
 			}
 		}
-
+		
 		server.getQueue().removeCompletedJob();
 		System.out.println("SENDING GATHER REQUEST ");
 		out.println("GATHER");
 		/* Send acknowledgement to command center */
-		System.out.println(task.getRoverName());
-		if(task.getRoverName().equals("ROVER"))
-			sendAcknowledgement(task + " GATHERED");
+		//System.out.println(task.getRoverName());
+		//if(task.getRoverName().equals("ROVER"))
+			//sendAcknowledgement(task + " GATHERED");
 		System.out.println("JOB COMPLETED\n");
 		setCargo();
 	}
-	
-	
-	/* This method is used to decide what direction the rover will go next */
-	private String resolveDirection(){
-		if(roverTracker.getDistanceTracker().xpos > 0)
-			return "E";
-		if(roverTracker.getDistanceTracker().xpos < 0)
-			return "W";
-		if(roverTracker.getDistanceTracker().ypos > 0)
-			return "S";
-		if(roverTracker.getDistanceTracker().ypos < 0)
-			return "N";
-		return null;
-	}
-	
-	
+
+
 	private void accelerate(int xVelocity, int yVelocity) throws IOException, InterruptedException{
-
-		/* The direction here is decided based on the entries for the x and y velocity, this is a shortened version of 
-		 * if else statements */
 		String direction = (xVelocity == 1)?"E":(xVelocity == -1)?"W":(yVelocity == 1)?"S":(yVelocity == -1)?"N":null;
-		/* Needs to choose a condition for the while loop so there is a shorthand if statement in the while condition*/
-		while((xVelocity != 0)?roverTracker.getDistanceTracker().xpos != 0:roverTracker.getDistanceTracker().ypos != 0){
-			if(!blocked(xVelocity,yVelocity)) move(direction); /* If it is not blocked it moves in the direction that was decided */
-			else {
-				roverTracker.addMarker(new Coord(roverTracker.getCurrentLocation().xpos + xVelocity, roverTracker.getCurrentLocation().ypos + yVelocity));
-				goAround(direction); /* Direction is the direction the rover was headed when it got blocked */
-			}
+		System.out.println("MOVE " + direction);
+		Coord previousLocation = roverTracker.getCurrentLocation();
+		while(previousLocation.equals(roverTracker.getCurrentLocation())){
+			previousLocation = roverTracker.getCurrentLocation();
+			//out.println("MOVE " + direction);
+			move(direction);
 			getLocation();
 		}
 	}
-
-	/* Major flaw with this movement algorithm, it will go the long way around even if there is a shorter way and it also
-	 * will be trapped going in a big circle if it is blocked by the bounds of the map, solutions might be using D* Lite instead or
-	 * making a task time out method that causes the rover to give up on a task if a certain amount of time has elapsed  */
-	private void goAround(String direction) throws InterruptedException, IOException{
-
-		String previousDirection = "";
-		String direction1 = previousDirection;
-		while((roverTracker.getCurrentLocation().ypos > roverTracker.peekMarker().ypos && direction.equals("N")) ||
-				(roverTracker.getCurrentLocation().xpos > roverTracker.peekMarker().xpos && direction.equals("W")) ||
-				(roverTracker.getCurrentLocation().ypos < roverTracker.peekMarker().ypos && direction.equals("S")) ||
-				(roverTracker.getCurrentLocation().xpos < roverTracker.peekMarker().xpos && direction.equals("E"))){
-			getLocation();
-			int centerIndex = (scanMap.getEdgeSize() - 1)/2;
-			direction1 = previousDirection;
-
-			if((!blocked(0,1) && (blocked(1,-1, centerIndex, centerIndex + 1) || blocked(1,1))) && !previousDirection.equals("N")){
-				move("S");
-				previousDirection = "S";
-				continue;
-			}
-
-			if((!blocked(0,-1) && (blocked(-1,1, centerIndex, centerIndex - 1) || blocked(-1,-1))) && !previousDirection.equals("S")){
-				move("N");
-				previousDirection = "N";
-				continue;
-			}
-
-			if((!blocked(-1,0) && (blocked(1,1, centerIndex - 1, centerIndex) || blocked(-1,1))) && !previousDirection.equals("E")){
-				move("W");
-				previousDirection = "W";
-				continue;
-			}
-
-			if((!blocked(1,0) && (blocked(-1,-1, centerIndex + 1, centerIndex) || blocked(1,-1))) && !previousDirection.equals("W")){
-				move("E");
-				previousDirection = "E";
-				continue;
-			}
-
-			/* This makes sure that rover is able to get out of hallways with no exit */
-			if(direction1.equals(previousDirection)){
-				previousDirection = "";
-			}
-		}
-	}
-
+	
 	/* Sends move request to server and updates distance tracker */
 	private void move(String direction) throws IOException, InterruptedException{
 		Coord previousLocation = roverTracker.getCurrentLocation();
@@ -254,38 +164,7 @@ public class ROVER_03{
 			break;
 			}
 		}
-		Thread.sleep(SLEEP_TIME);		/* Thread needs to sleep after every move so it does not send too many requests */
-	}
-
-	private boolean blocked(int xOffset, int yOffset){
-		MapTile[][] map = scanMap.getScanMap();
-		int centerIndex = (scanMap.getEdgeSize() - 1)/2;
-		return map[centerIndex + xOffset][centerIndex + yOffset].getHasRover() 
-				|| map[centerIndex + xOffset][centerIndex + yOffset].getTerrain() == Terrain.ROCK
-				|| map[centerIndex + xOffset][centerIndex + yOffset].getTerrain() == Terrain.NONE;
-	}
-
-	/* This blocked method is used in the go around method, in order to look ahead */
-	private boolean blocked(int xOffset, int yOffset, int roverX, int roverY){
-		MapTile[][] map = scanMap.getScanMap();
-		return map[roverX + xOffset][roverY + yOffset].getHasRover() 
-				|| map[roverX + xOffset][roverY + yOffset].getTerrain() == Terrain.ROCK
-				|| map[roverX + xOffset][roverY + yOffset].getTerrain() == Terrain.NONE;
-	}
-	
-	/* Used to send message to command center when job is completed */
-	private void sendAcknowledgement(String acknowledgement){
-		try{
-		Socket commandCenter = new Socket(COMMAND_CENTER_IP, COMMAND_CENTER_PORT);
-		PrintWriter out = new PrintWriter(commandCenter .getOutputStream());
-		out.print(acknowledgement);
-		out.flush();
-		commandCenter.close();
-		out.close();
-		}catch(Exception e){
-			System.out.println("ERROR: UNABLE TO CONNECT TO COMMAND CENTER");
-			return;
-		}
+	//	Thread.sleep(SLEEP_TIME);		/* Thread needs to sleep after every move so it does not send too many requests */
 	}
 
 	/*------------------------------------------- SWARM SERVER REQUESTS ----------------------------------------------------*/
@@ -319,8 +198,8 @@ public class ROVER_03{
 		returnList = gson.fromJson(jsonEqListString, new TypeToken<ArrayList<String>>(){}.getType());		
 		return returnList;
 	}
-	
-	
+
+
 	/* Returns coordinate object that represents rover's current location */
 	private void getLocation() throws IOException, InterruptedException{
 		Coord previousLocation = roverTracker.getCurrentLocation();
@@ -366,19 +245,19 @@ public class ROVER_03{
 	}
 
 	/*-------------------------------------------------- SUPPORT METHODS -----------------------------------------------*/
-	
+
 	private void clearReadLineBuffer() throws IOException{
 		while(in.ready()){
 			in.readLine();	
 		}
 	}
-	
+
 	/* This takes the LOC response string, parses out the x and y values and returns a Coord object */
 	public static Coord extractLOC(String response) {
 		String[] coordinates = response.split(" ");
 		return new Coord(Integer.parseInt(coordinates[1].trim()), Integer.parseInt(coordinates[2].trim()));
 	}
-	
+
 	/* ----------------------------------------------------- GETTERS ----------------------------------------------------*/
 
 	public ScanMap getScanMap(){
@@ -427,7 +306,7 @@ public class ROVER_03{
 		cargo.put("RADIOACTIVE", 0);
 		cargo.put("CRYSTAL", 0);
 	}
-	
+
 	private void setTargetLocationTasks() throws IOException{
 		/* Target_location request */
 		out.println("TARGET_LOC");
@@ -447,19 +326,19 @@ public class ROVER_03{
 
 	/* --------------------------------- UNCOMMENT THIS TO RUN WITHOUT GUI -------------------------------------------------*/
 
-	/*	
-	 	public static void main(String args[]) throws IOException, InterruptedException{
-			ROVER_03 client;
-			if(!(args.length == 0)){
-				// 192.168.1.106
-				client = new ROVER_03(args[0]);
-			} else {
-				client = new ROVER_03("127.0.0.1");
-			}
+
+	public static void main(String args[]) throws IOException, InterruptedException{
+		ROVER_03 client;
+		if(!(args.length == 0)){
+			// 192.168.1.106
+			client = new ROVER_03(args[0]);
+		} else {
+			client = new ROVER_03("127.0.0.1");
+		}
 
 
-			client.start();
-		} 
-	 */
+		client.start();
+	} 
+
 
 }
