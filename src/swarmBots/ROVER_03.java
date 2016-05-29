@@ -78,7 +78,8 @@ public class ROVER_03{
 				break;
 			}
 		}
-
+		
+		getLocation();
 		setEquipment();
 		setTargetLocationTasks();
 		System.out.println(rover);
