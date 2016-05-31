@@ -30,7 +30,7 @@ public class ROVER_03{
 	/*--------------------------------------------- CONSTANTS AND VARIABLES ----------------------------------------------------*/
 
 	private static final String ROVER_NAME = "ROVER_03";
-	private static final int SLEEP_TIME = 1000; // The higher this number is the smaller the number of request sent to server
+	private static final int SLEEP_TIME = 100; // The higher this number is the smaller the number of request sent to server
 
 	// port and ip for swarm server we will be connecting to 
 	private static final int PORT_ADDRESS = 9537;

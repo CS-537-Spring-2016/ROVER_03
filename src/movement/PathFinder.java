@@ -57,7 +57,7 @@ public class PathFinder {
 		}
 		if(!pathFound){
 			int[] order = {3,2,4,5,1,6,0};
-			if(tracker.getDistanceTracker().ypos == 0 && tracker.getDistanceTracker().xpos > 0){
+			if(tracker.getDistanceTracker().ypos >=-2 && tracker.getDistanceTracker().ypos <= 2 && tracker.getDistanceTracker().xpos > 0){
 				for(int i = tiles.length-1; i >= 0; i--){
 					for(int j = 0; j < order.length; j++){
 						if(pathFound) break;
@@ -66,8 +66,8 @@ public class PathFinder {
 					if(pathFound) break;
 				}
 			}
-			else if(tracker.getDistanceTracker().xpos == 0 && tracker.getDistanceTracker().ypos < 0){
-				for(int i = tiles.length-1; i >= 0; i--){
+			else if(tracker.getDistanceTracker().xpos >=-2 && tracker.getDistanceTracker().xpos <= 2 && tracker.getDistanceTracker().ypos < 0){
+				for(int i = 0; i < tiles.length; i++){
 					for(int j = 0; j < order.length; j++){
 						if(pathFound) break;
 						search(order[j],i);
@@ -75,8 +75,8 @@ public class PathFinder {
 					if(pathFound) break;
 				}
 			}
-			else if(tracker.getDistanceTracker().ypos == 0 && tracker.getDistanceTracker().xpos < 0){
-				for(int i = tiles.length-1; i >= 0; i--){
+			else if(tracker.getDistanceTracker().ypos >=-2 && tracker.getDistanceTracker().ypos <= 2 && tracker.getDistanceTracker().xpos < 0){
+				for(int i = 0; i < tiles.length; i++){
 					for(int j = 0; j < order.length; j++){
 						if(pathFound) break;
 						search(i,order[j]);
@@ -84,7 +84,7 @@ public class PathFinder {
 					if(pathFound) break;
 				}
 			}
-			else if(tracker.getDistanceTracker().xpos == 0 && tracker.getDistanceTracker().ypos > 0){
+			else if(tracker.getDistanceTracker().xpos >=-2 && tracker.getDistanceTracker().xpos <= 2 && tracker.getDistanceTracker().ypos > 0){
 				for(int i = tiles.length-1; i >= 0; i--){
 					for(int j = 0; j < order.length; j++){
 						if(pathFound) break;
@@ -101,6 +101,7 @@ public class PathFinder {
 						search(i,j);
 					}
 					if(pathFound) break;
+					if(i == 1) tracker.lastVisited.clear(); // means rover doesnt know where to go
 				}
 			}
 			else if(start.compareTo(end) == 3){
@@ -110,6 +111,8 @@ public class PathFinder {
 						search(i,j);
 					}
 					if(pathFound) break;
+					if(i == 1) tracker.lastVisited.clear(); // means rover doesnt know where to go
+
 				}
 			}
 			else if(start.compareTo(end) == 2){
@@ -119,6 +122,8 @@ public class PathFinder {
 						search(i,j);
 					}
 					if(pathFound) break;
+					if(i == 5) tracker.lastVisited.clear(); // means rover doesnt know where to go
+
 				}
 			}
 			else if(start.compareTo(end) == 1){
@@ -128,7 +133,8 @@ public class PathFinder {
 						search(i,j);
 					}
 					if(pathFound) break;
-				}
+					if(i == 5) tracker.lastVisited.clear(); // means rover doesnt know where to go
+				}				
 			}
 		}
 
@@ -156,11 +162,12 @@ public class PathFinder {
 		//System.exit(0);
 		path.clear();
 		System.out.println("ABOVE COORDINATE IS BLOCKED? : " + (blocked(curr) && getNeighbors(curr.getLocalX(),curr.getLocalY()).size() > 1));
-		if(blocked(curr) || curr.equals(start)) return;
+		if(blocked(curr) || curr.equals(start) || getNeighbors(curr.getLocalX(),curr.getLocalY()).size() <= 1) return;
 		//System.exit(0);
 		path.push(curr);
 		setPath(curr);
 	}
+	
 	private boolean blocked(Coordinate coord){
 		return tiles[coord.getLocalX()][coord.getLocalY()].getHasRover() 
 				|| tiles[coord.getLocalX()][coord.getLocalY()].getTerrain() == Terrain.ROCK
@@ -245,60 +252,6 @@ public class PathFinder {
 
 		return neighbors;
 	}
-
-
-	//	private void setPath2(Coord current){
-	//		if(current == null){
-	//			return;
-	//		}
-	//		else if((current.xpos == 4 && current.ypos == 3) || (current.xpos == 2 && current.ypos == 3) || (current.xpos == 3 && current.ypos == 4) || (current.xpos == 3 && current.ypos == 2)){
-	//			pathFound = true;
-	//			return;
-	//		}
-	//		else{
-	//			setPath(nextBest2(current));
-	//		}
-	//	}
-	//
-	//	private Coord nextBest2(Coord current){
-	//		ArrayList<Coord> neighbors = new ArrayList<>();
-	//		neighbors.add(new Coord(current.xpos, current.ypos + 1));  // South 
-	//		neighbors.add(new Coord(current.xpos, current.ypos - 1));  // North
-	//		neighbors.add(new Coord(current.xpos + 1, current.ypos));  // East
-	//		neighbors.add(new Coord(current.xpos - 1, current.ypos));  // West
-	//
-	//		for(int i = 0; i < neighbors.size(); i++){
-	//			if(neighbors.get(i).xpos > 6 || neighbors.get(i).xpos < 0 ||neighbors.get(i).ypos > 6 ||neighbors.get(i).ypos < 0 || blocked2(neighbors.get(i)) || contains(neighbors.get(i))){
-	//				neighbors.remove(neighbors.get(i));
-	//				i--;
-	//			}
-	//		}
-	//		//		System.out.println("NEIGBORS SIZE : " + neighbors.size() );
-	//		//		if(neighbors.size() <= 1) // might be a hall way
-	//		//			return null;
-	//
-	//
-	//		/* Makes current location into a Point2D object */
-	//		Point2D point = new Point2D.Double(3,3);
-	//		Double closest = Double.POSITIVE_INFINITY; 
-	//
-	//
-	//		Coord next = null;
-	//
-	//		for(Coord tile: neighbors){
-	//			//System.out.println("NEIGHBOR: " + tile);
-	//			Point2D pt = new Point2D.Double(tile.xpos, tile.ypos);
-	//			Double distanceFromCurr = point.distance(pt);
-	//			if(distanceFromCurr < closest) {
-	//				closest = distanceFromCurr;
-	//				next = tile;
-	//			}
-	//		}
-	//
-	//		System.out.println(next);
-	//		path.push(next);
-	//		return next;
-	//	}
 
 	private boolean inStack(Coordinate c){
 		for(Coordinate curr: path)
