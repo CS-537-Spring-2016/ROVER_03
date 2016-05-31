@@ -88,8 +88,10 @@ public class ROVER_03{
 
 		/* Start ROVER_03 Tasks */ 
 		while (true){ 
-		if(!server.getQueue().isEmpty())
+			roverTracker.lastVisited.clear();
+			if(!server.getQueue().isEmpty()){
 			startMission(server.getQueue().closestTask(roverTracker.getCurrentLocation()));
+			}
 		}
 	}	
 
@@ -102,37 +104,47 @@ public class ROVER_03{
 
 		roverTracker.setStartingPoint(roverTracker.getCurrentLocation());
 		System.out.println("STARTING POINT: " + roverTracker.getStartingPoint());
-
 		roverTracker.setDestination(task.getDestination());
 		System.out.println("DESTINATION: " + task.getDestination());
-
 		roverTracker.setDistanceTracker();
 		System.out.println("DISTANCE: " + roverTracker.getDistanceTracker());
+		
+		
+		PathFinder path = new PathFinder(scanMap, roverTracker, roverTracker.getCurrentLocation(), roverTracker.getDestination());
 
 		while(!roverTracker.hasArrived()){
-			getLocation();
-			ArrayList<Coord> moveList = new PathFinder(scanMap, roverTracker).generatePath(); 
-			for(Coord c:moveList){
-				accelerate(c.xpos,c.ypos);
-				Thread.sleep(SLEEP_TIME);
-
+			ArrayList<String> moveList = path.generatePath();
+			if(moveList == null){
+				System.out.println("TARGET IS UNREACHABLE ... ABORTING MISSION");
+				server.getQueue().removeCompletedJob();
+				return;
 			}
+			//roverTracker.startedFrom = path.start;
+			//Coord curr = null;
+			for(String direction: moveList){
+//				curr = c;
+				accelerate(direction);
+			}
+			//System.exit(0);
+			getLocation();
+			path.setStart(roverTracker.getCurrentLocation());
+			path.setMap(scanMap);
 		}
-		
+
 		server.getQueue().removeCompletedJob();
 		System.out.println("SENDING GATHER REQUEST ");
 		out.println("GATHER");
 		/* Send acknowledgement to command center */
 		//System.out.println(task.getRoverName());
 		//if(task.getRoverName().equals("ROVER"))
-			//sendAcknowledgement(task + " GATHERED");
+		//sendAcknowledgement(task + " GATHERED");
 		System.out.println("JOB COMPLETED\n");
 		setCargo();
 	}
 
 
-	private void accelerate(int xVelocity, int yVelocity) throws IOException, InterruptedException{
-		String direction = (xVelocity == 1)?"E":(xVelocity == -1)?"W":(yVelocity == 1)?"S":(yVelocity == -1)?"N":null;
+	private void accelerate(String direction) throws IOException, InterruptedException{
+//		String direction = (xVelocity == 1)?"E":(xVelocity == -1)?"W":(yVelocity == 1)?"S":(yVelocity == -1)?"N":null;
 		System.out.println("MOVE " + direction);
 		Coord previousLocation = roverTracker.getCurrentLocation();
 		while(previousLocation.equals(roverTracker.getCurrentLocation())){
@@ -142,7 +154,7 @@ public class ROVER_03{
 			getLocation();
 		}
 	}
-	
+
 	/* Sends move request to server and updates distance tracker */
 	private void move(String direction) throws IOException, InterruptedException{
 		Coord previousLocation = roverTracker.getCurrentLocation();
@@ -164,7 +176,7 @@ public class ROVER_03{
 			break;
 			}
 		}
-	//	Thread.sleep(SLEEP_TIME);		/* Thread needs to sleep after every move so it does not send too many requests */
+			Thread.sleep(SLEEP_TIME);		/* Thread needs to sleep after every move so it does not send too many requests */
 	}
 
 	/*------------------------------------------- SWARM SERVER REQUESTS ----------------------------------------------------*/
@@ -206,7 +218,7 @@ public class ROVER_03{
 		out.println("LOC");
 		String results = in.readLine();
 		if (results == null) {
-			System.out.println(rover.getName() + " check connection to server");
+			System.exit(1);
 			results = "";
 		}
 		if (results.startsWith("LOC"))

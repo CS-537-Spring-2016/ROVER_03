@@ -1,8 +1,10 @@
 package trackingUtility;
 
+import java.util.ArrayList;
 import java.util.Stack;
 
 import common.Coord;
+import movement.Coordinate;
 
 public class Tracker {
 
@@ -12,15 +14,26 @@ public class Tracker {
 	
 	private Coord startingPoint;
 	private Coord destination;
+	public Coord startedFrom;
 
 	private Coord lastSuccessfulMove;
 	// Keeps track of how may tiles are left to go
 	private Coord distanceTracker;
+	public ArrayList<Coordinate> lastVisited;
+	
 
 	public Tracker(){
 		distanceTracker = new Coord(0,0);
 		currentLocation = new Coord(0,0);
 		markers = new Stack<>();
+		lastVisited = new ArrayList<>();
+	}
+	
+	public boolean hasVisited(Coordinate c){
+		for(Coordinate t: lastVisited)
+			if(c.equals(t))
+				return true;
+		return false;
 	}
 
 	public void setCurrentLocation(Coord currentLocation){
@@ -91,9 +104,8 @@ public class Tracker {
 	}
 
 	public boolean targetInRange(){
-		return currentLocation.xpos <= (destination.xpos + 3) && 
-				currentLocation.xpos >= (destination.xpos - 3) && 
-				currentLocation.ypos <= (destination.ypos + 3) && 
-				currentLocation.ypos >= (destination.ypos -3); 
+		
+		return (distanceTracker.xpos >= -3 && distanceTracker.xpos <= 3) && (distanceTracker.ypos >= -3 && distanceTracker.ypos <= 3);
+
 	}
 }
