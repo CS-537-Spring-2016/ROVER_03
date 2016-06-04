@@ -1,9 +1,7 @@
 package trackingUtility;
 
 import java.util.ArrayList;
-import java.util.Stack;
 
-import common.Coord;
 import movement.Coordinate;
 
 public class Tracker {
