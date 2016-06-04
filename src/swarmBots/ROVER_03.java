@@ -120,8 +120,8 @@ public class ROVER_03{
 
 
 			for(String direction: moveList){
-				accelerate(direction);
-				if((roverTracker.getYDistance() >= -6 && roverTracker.getYDistance() <= 6) || (roverTracker.getXDistance() >= 6 && roverTracker.getXDistance() <= 6))
+				if(!accelerate(direction))break;
+				if((roverTracker.getYDistance() >= -6 && roverTracker.getYDistance() <= 6) || (roverTracker.getXDistance() >= -6 && roverTracker.getXDistance() <= 6))
 					continue;
 				if(blocked(roverTracker.getCurrentLocation().compareTo(roverTracker.getDestination())))
 					break;
@@ -133,21 +133,26 @@ public class ROVER_03{
 		System.out.println("SENDING GATHER REQUEST ");
 		out.println("GATHER");
 		/* Send acknowledgement to command center */
-		//System.out.println(task.getRoverName());
-		//if(task.getRoverName().equals("ROVER"))
-		//sendAcknowledgement(task + " GATHERED");
+		System.out.println(task.getRoverName());
+		if(task.getRoverName().equals("ROVER"))
+			sendAcknowledgement(task + " GATHERED");
 		System.out.println("JOB COMPLETED\n");
 		setCargo();
 	}
 
 
-	private void accelerate(String direction) throws IOException, InterruptedException{
+	private boolean accelerate(String direction) throws IOException, InterruptedException{
 		Coordinate previousLocation = new Coordinate(roverTracker.getCurrentLocation().getAbsoluteX(), roverTracker.getCurrentLocation().getAbsoluteY(), Coordinate.TYPE.ABSOLUTE);
+		int tries = 0;
 		while(previousLocation.equals(roverTracker.getCurrentLocation())){
 			previousLocation.setAbsolute(roverTracker.getCurrentLocation().getAbsoluteX(), roverTracker.getCurrentLocation().getAbsoluteY());
 			move(direction);
 			getLocation();
+			if(tries == 5)
+				return false;
+			tries++;
 		}
+		return true;
 	}
 
 	/* Sends move request to server and updates distance tracker */
@@ -172,6 +177,21 @@ public class ROVER_03{
 			}
 		}
 		Thread.sleep(SLEEP_TIME);		/* Thread needs to sleep after every move so it does not send too many requests */
+	}
+
+	/* Used to send message to command center when job is completed */
+	private void sendAcknowledgement(String acknowledgement){
+		try{
+			Socket commandCenter = new Socket(COMMAND_CENTER_IP, COMMAND_CENTER_PORT);
+			PrintWriter out = new PrintWriter(commandCenter .getOutputStream());
+			out.print(acknowledgement);
+			out.flush();
+			commandCenter.close();
+			out.close();
+		}catch(Exception e){
+			System.out.println("ERROR: UNABLE TO CONNECT TO COMMAND CENTER");
+			return;
+		}
 	}
 
 	/*------------------------------------------- SWARM SERVER REQUESTS ----------------------------------------------------*/
@@ -262,60 +282,45 @@ public class ROVER_03{
 	}
 
 	private boolean blocked(int quadrant){
-		MapTile[][] tiles = scanMap.getScanMap();
 		if(quadrant == 4){
-			//	return tiles[6][6].getHasRover() || tiles[6][6].getTerrain() == Terrain.ROCK || tiles[6][6].getTerrain() == Terrain.NONE;
-			for(int i = 5; i >= 3; i--){
-				if(tiles[5][i].getHasRover() || tiles[5][i].getTerrain() == Terrain.ROCK || tiles[5][i].getTerrain() == Terrain.NONE)
+			for(int i = 5; i >= 3; i--)
+				if(blockedHelper(5,i) || blockedHelper(i,5))
 					return true;
-			}
-
-			for(int i = 5; i >= 3; i--){
-				if(tiles[i][5].getHasRover() || tiles[i][5].getTerrain() == Terrain.ROCK || tiles[i][5].getTerrain() == Terrain.NONE)
-					return true;
-			}
 			return false;
 		}
 		if(quadrant == 3){
-			//				return tiles[6][0].getHasRover() || tiles[6][0].getTerrain() == Terrain.ROCK || tiles[6][0].getTerrain() == Terrain.NONE;
-			for(int i = 1; i <= 3; i++){
-				if(tiles[5][i].getHasRover() || tiles[5][i].getTerrain() == Terrain.ROCK || tiles[5][i].getTerrain() == Terrain.NONE)
+			for(int i = 1; i <= 3; i++)
+				if(blockedHelper(5,i))
 					return true;
-			}
-
-			for(int i = 1; i >= 3; i--){
-				if(tiles[i][1].getHasRover() || tiles[i][1].getTerrain() == Terrain.ROCK || tiles[i][1].getTerrain() == Terrain.NONE)
+			for(int i = 5; i >= 3; i--)
+				if(blockedHelper(i,1))
 					return true;
-			}
 			return false;
 		}		
 		if(quadrant == 2){
-			//return tiles[0][6].getHasRover() || tiles[0][6].getTerrain() == Terrain.ROCK || tiles[0][6].getTerrain() == Terrain.NONE;
-			for(int i = 1; i <= 3; i++){
-				if(tiles[i][5].getHasRover() || tiles[i][5].getTerrain() == Terrain.ROCK || tiles[i][5].getTerrain() == Terrain.NONE)
+			for(int i = 1; i <= 3; i++)
+				if(blockedHelper(i,5))
 					return true;
-			}
-			for(int i = 5; i >= 3; i--){
-				if(tiles[1][i].getHasRover() || tiles[1][i].getTerrain() == Terrain.ROCK || tiles[1][i].getTerrain() == Terrain.NONE)
+			for(int i = 5; i >= 3; i--)
+				if(blockedHelper(1,i))
 					return true;
-			}
 			return false;
 		}		
-		else if(quadrant == 1){
-			//return tiles[0][0].getHasRover() || tiles[0][0].getTerrain() == Terrain.ROCK || tiles[0][0].getTerrain() == Terrain.NONE;
-			for(int i = 1; i <= 3; i++){
-				if(tiles[i][1].getHasRover() || tiles[i][1].getTerrain() == Terrain.ROCK || tiles[i][1].getTerrain() == Terrain.NONE)
+		if(quadrant == 1){
+			for(int i = 1; i <= 3; i++)
+				if(blockedHelper(i,1) || blockedHelper(1,i))
 					return true;
-			}
-
-			for(int i = 1; i <= 3; i++){
-				if(tiles[1][i].getHasRover() || tiles[1][i].getTerrain() == Terrain.ROCK || tiles[1][i].getTerrain() == Terrain.NONE)
-					return true;
-			}
 			return false;
 		}
 
 		return false;
+	}
+
+	public boolean blockedHelper(int x, int y){
+		MapTile[][] tiles = scanMap.getScanMap();
+		return tiles[x][y].getHasRover() || 
+				tiles[x][y].getTerrain() == Terrain.ROCK || 
+				tiles[x][y].getTerrain() == Terrain.NONE;
 	}
 
 	/* This takes the LOC response string, parses out the x and y values and returns a Coord object */

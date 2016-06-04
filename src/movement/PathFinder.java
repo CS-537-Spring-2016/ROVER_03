@@ -145,13 +145,18 @@ public class PathFinder {
 
 
 		ArrayList<String> moves = new ArrayList<>();
-
-		Coordinate old = start;  // middle
+		if(moves.size() != 0 && moves.get(moves.size()-1) == null){
+			tracker.lastVisited.clear();
+			generatePath(map);
+		}
+		
+		Coordinate old = start;
 		Coordinate temp = null;
 		while(!path.isEmpty()){
 			temp = path.pop();
 			moves.add(Direction.getCardinalDirection(temp.getLocalX() - old.getLocalX(),temp.getLocalY() - old.getLocalY()));
 			old = temp;
+			System.out.println("NEXT MOVE: " + old);
 		}
 
 		return moves;
@@ -209,7 +214,7 @@ public class PathFinder {
 		}
 
 		path.push(next);
-		System.out.println("NEXT MOVE: " + next);
+		// System.out.println("NEXT MOVE: " + next);
 		return next;
 	}
 
