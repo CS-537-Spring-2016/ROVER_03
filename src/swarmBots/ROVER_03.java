@@ -8,19 +8,18 @@ import java.net.Socket;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Stack;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 
-import common.Coord;
 import common.MapTile;
 import common.ScanMap;
 import communication.RoverServer;
 import enums.Terrain;
 import model.Rover;
 import model.RoverQueue;
+import movement.Coordinate;
 import movement.PathFinder;
 import tasks.Task;
 import trackingUtility.Tracker;
@@ -90,7 +89,7 @@ public class ROVER_03{
 		while (true){ 
 			roverTracker.lastVisited.clear();
 			if(!server.getQueue().isEmpty()){
-			startMission(server.getQueue().closestTask(roverTracker.getCurrentLocation()));
+				startMission(server.getQueue().closestTask(roverTracker.getCurrentLocation()));
 			}
 		}
 	}	
@@ -102,33 +101,32 @@ public class ROVER_03{
 	private void startMission(Task task) throws IOException, InterruptedException{
 		System.out.println("\nCURRENT LOCATION: " + roverTracker.getCurrentLocation());
 
-		roverTracker.setStartingPoint(roverTracker.getCurrentLocation());
-		System.out.println("STARTING POINT: " + roverTracker.getStartingPoint());
-		roverTracker.setDestination(task.getDestination());
-		System.out.println("DESTINATION: " + task.getDestination());
-		roverTracker.setDistanceTracker();
-		System.out.println("DISTANCE: " + roverTracker.getDistanceTracker());
-		
-		
-		PathFinder path = new PathFinder(scanMap, roverTracker, roverTracker.getCurrentLocation(), roverTracker.getDestination());
+		roverTracker.setOrigin(roverTracker.getCurrentLocation().getAbsoluteX(), roverTracker.getCurrentLocation().getAbsoluteY());
+		roverTracker.setDestination(task.getDestination().getAbsoluteX(), task.getDestination().getAbsoluteY());
+		roverTracker.setDistance();
+
+
+		PathFinder path = new PathFinder(roverTracker);
 
 		while(!roverTracker.hasArrived()){
-			ArrayList<String> moveList = path.generatePath();
+			ArrayList<String> moveList = path.generatePath(scanMap);
 			if(moveList == null){
 				System.out.println("TARGET IS UNREACHABLE ... ABORTING MISSION");
 				server.getQueue().removeCompletedJob();
 				return;
 			}
-			//roverTracker.startedFrom = path.start;
-			//Coord curr = null;
+			System.out.println("MOVES: " + moveList.toString());
+
+
+
 			for(String direction: moveList){
-//				curr = c;
 				accelerate(direction);
+				if((roverTracker.getYDistance() >= -6 && roverTracker.getYDistance() <= 6) || (roverTracker.getXDistance() >= 6 && roverTracker.getXDistance() <= 6))
+					continue;
+				if(blocked(roverTracker.getCurrentLocation().compareTo(roverTracker.getDestination())))
+					break;
 			}
-			//System.exit(0);
 			getLocation();
-			path.setStart(roverTracker.getCurrentLocation());
-			path.setMap(scanMap);
 		}
 
 		server.getQueue().removeCompletedJob();
@@ -144,12 +142,9 @@ public class ROVER_03{
 
 
 	private void accelerate(String direction) throws IOException, InterruptedException{
-//		String direction = (xVelocity == 1)?"E":(xVelocity == -1)?"W":(yVelocity == 1)?"S":(yVelocity == -1)?"N":null;
-		System.out.println("MOVE " + direction);
-		Coord previousLocation = roverTracker.getCurrentLocation();
+		Coordinate previousLocation = new Coordinate(roverTracker.getCurrentLocation().getAbsoluteX(), roverTracker.getCurrentLocation().getAbsoluteY(), Coordinate.TYPE.ABSOLUTE);
 		while(previousLocation.equals(roverTracker.getCurrentLocation())){
-			previousLocation = roverTracker.getCurrentLocation();
-			//out.println("MOVE " + direction);
+			previousLocation.setAbsolute(roverTracker.getCurrentLocation().getAbsoluteX(), roverTracker.getCurrentLocation().getAbsoluteY());
 			move(direction);
 			getLocation();
 		}
@@ -157,26 +152,26 @@ public class ROVER_03{
 
 	/* Sends move request to server and updates distance tracker */
 	private void move(String direction) throws IOException, InterruptedException{
-		Coord previousLocation = roverTracker.getCurrentLocation();
+		Coordinate previousLocation = new Coordinate(roverTracker.getCurrentLocation().getAbsoluteX(), roverTracker.getCurrentLocation().getAbsoluteY(), Coordinate.TYPE.ABSOLUTE);
 		out.println("MOVE " + direction);
 		getLocation();
-		if(!previousLocation.equals(roverTracker.getCurrentLocation())){		
+		if(!previousLocation.equals(roverTracker.getCurrentLocation())){
 			switch(direction.charAt(0)){
 			case('N'):
-				roverTracker.updateYPos(1);
+				roverTracker.updateYDistance(1);
 			break;
 			case('W'):
-				roverTracker.updateXPos(1);
+				roverTracker.updateXDistance(1);
 			break;
 			case('S'):
-				roverTracker.updateYPos(-1);
+				roverTracker.updateYDistance(-1);
 			break;
 			case('E'):
-				roverTracker.updateXPos(-1);
+				roverTracker.updateXDistance(-1);
 			break;
 			}
 		}
-			Thread.sleep(SLEEP_TIME);		/* Thread needs to sleep after every move so it does not send too many requests */
+		Thread.sleep(SLEEP_TIME);		/* Thread needs to sleep after every move so it does not send too many requests */
 	}
 
 	/*------------------------------------------- SWARM SERVER REQUESTS ----------------------------------------------------*/
@@ -214,18 +209,20 @@ public class ROVER_03{
 
 	/* Returns coordinate object that represents rover's current location */
 	private void getLocation() throws IOException, InterruptedException{
-		Coord previousLocation = roverTracker.getCurrentLocation();
+		//Coordinate previousLocation = roverTracker.getCurrentLocation();
 		out.println("LOC");
 		String results = in.readLine();
 		if (results == null) {
 			System.exit(1);
 			results = "";
 		}
-		if (results.startsWith("LOC"))
-			roverTracker.setCurrentLocation(extractLOC(results));
-		if(!roverTracker.getCurrentLocation().equals(previousLocation)){
-			this.doScan();
+		if (results.startsWith("LOC")){
+			int[] coordinate = extractLOC(results);
+			roverTracker.setCurrentLocation(coordinate[0], coordinate[1]);
 		}
+		//if(!roverTracker.getCurrentLocation().equals(previousLocation)){
+		this.doScan();
+		//}
 	}
 
 	/* Sends a SCAN request to the server and puts the result in the scanMap array */
@@ -264,10 +261,68 @@ public class ROVER_03{
 		}
 	}
 
+	private boolean blocked(int quadrant){
+		MapTile[][] tiles = scanMap.getScanMap();
+		if(quadrant == 4){
+			//	return tiles[6][6].getHasRover() || tiles[6][6].getTerrain() == Terrain.ROCK || tiles[6][6].getTerrain() == Terrain.NONE;
+			for(int i = 5; i >= 3; i--){
+				if(tiles[5][i].getHasRover() || tiles[5][i].getTerrain() == Terrain.ROCK || tiles[5][i].getTerrain() == Terrain.NONE)
+					return true;
+			}
+
+			for(int i = 5; i >= 3; i--){
+				if(tiles[i][5].getHasRover() || tiles[i][5].getTerrain() == Terrain.ROCK || tiles[i][5].getTerrain() == Terrain.NONE)
+					return true;
+			}
+			return false;
+		}
+		if(quadrant == 3){
+			//				return tiles[6][0].getHasRover() || tiles[6][0].getTerrain() == Terrain.ROCK || tiles[6][0].getTerrain() == Terrain.NONE;
+			for(int i = 1; i <= 3; i++){
+				if(tiles[5][i].getHasRover() || tiles[5][i].getTerrain() == Terrain.ROCK || tiles[5][i].getTerrain() == Terrain.NONE)
+					return true;
+			}
+
+			for(int i = 1; i >= 3; i--){
+				if(tiles[i][1].getHasRover() || tiles[i][1].getTerrain() == Terrain.ROCK || tiles[i][1].getTerrain() == Terrain.NONE)
+					return true;
+			}
+			return false;
+		}		
+		if(quadrant == 2){
+			//return tiles[0][6].getHasRover() || tiles[0][6].getTerrain() == Terrain.ROCK || tiles[0][6].getTerrain() == Terrain.NONE;
+			for(int i = 1; i <= 3; i++){
+				if(tiles[i][5].getHasRover() || tiles[i][5].getTerrain() == Terrain.ROCK || tiles[i][5].getTerrain() == Terrain.NONE)
+					return true;
+			}
+			for(int i = 5; i >= 3; i--){
+				if(tiles[1][i].getHasRover() || tiles[1][i].getTerrain() == Terrain.ROCK || tiles[1][i].getTerrain() == Terrain.NONE)
+					return true;
+			}
+			return false;
+		}		
+		else if(quadrant == 1){
+			//return tiles[0][0].getHasRover() || tiles[0][0].getTerrain() == Terrain.ROCK || tiles[0][0].getTerrain() == Terrain.NONE;
+			for(int i = 1; i <= 3; i++){
+				if(tiles[i][1].getHasRover() || tiles[i][1].getTerrain() == Terrain.ROCK || tiles[i][1].getTerrain() == Terrain.NONE)
+					return true;
+			}
+
+			for(int i = 1; i <= 3; i++){
+				if(tiles[1][i].getHasRover() || tiles[1][i].getTerrain() == Terrain.ROCK || tiles[1][i].getTerrain() == Terrain.NONE)
+					return true;
+			}
+			return false;
+		}
+
+		return false;
+	}
+
 	/* This takes the LOC response string, parses out the x and y values and returns a Coord object */
-	public static Coord extractLOC(String response) {
+	public static int[] extractLOC(String response) {
 		String[] coordinates = response.split(" ");
-		return new Coord(Integer.parseInt(coordinates[1].trim()), Integer.parseInt(coordinates[2].trim()));
+		int[] coord = {Integer.parseInt(coordinates[1].trim()), Integer.parseInt(coordinates[2].trim())};
+		return coord; 
 	}
 
 	/* ----------------------------------------------------- GETTERS ----------------------------------------------------*/
@@ -322,7 +377,7 @@ public class ROVER_03{
 	private void setTargetLocationTasks() throws IOException{
 		/* Target_location request */
 		out.println("TARGET_LOC");
-		Coord target = extractLOC(in.readLine());
+		int[] target = extractLOC(in.readLine());
 
 		/* Will add every location in the target location to the queue regardless of the terrain it is on*/
 		for(int x = -3; x < 4; x ++)
@@ -332,7 +387,7 @@ public class ROVER_03{
 								"TARGET_LOCATION", 
 								"UNKNOWN", 				/* UNKNOWN TERRAIN */
 								"UNKNOWN",				/* UNKNOWN SCIENCE */
-								new Coord(x + target.xpos,y + target.ypos)));
+								new Coordinate(x + target[0],y + target[1], Coordinate.TYPE.ABSOLUTE)));
 	}
 
 

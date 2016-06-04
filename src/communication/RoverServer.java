@@ -9,6 +9,7 @@ import java.net.Socket;
 import common.Coord;
 import model.Rover;
 import model.RoverQueue;
+import movement.Coordinate;
 import tasks.Task;
 
 
@@ -46,7 +47,8 @@ public class RoverServer implements Runnable{
 					String loc = input.readLine();
 					String parsedInput[] = loc.split(" ");
 					if(!parsedInput[0].equals("ROCK")){
-						Task task = new Task("ROVER", parsedInput[0],parsedInput[1],new Coord(Integer.parseInt(parsedInput[2]),Integer.parseInt(parsedInput[3])));
+						Coordinate destination = new Coordinate(Integer.parseInt(parsedInput[2]),Integer.parseInt(parsedInput[3]), Coordinate.TYPE.ABSOLUTE);
+						Task task = new Task("ROVER", parsedInput[0],parsedInput[1],destination);
 						roverQueue.addTask(task);
 					}
 				}

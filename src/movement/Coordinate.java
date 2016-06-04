@@ -28,6 +28,12 @@ public class Coordinate implements Comparable<Coordinate>{
 		}
 	}
 
+	
+	public Coordinate clone(){
+		Coordinate clone = new Coordinate(absoluteXPos, absoluteYPos, Coordinate.TYPE.ABSOLUTE);
+		clone.setLocal(localXPos, localYPos);
+		return clone;
+	}
 
 	public int getAbsoluteX(){
 		return absoluteXPos;
@@ -43,10 +49,8 @@ public class Coordinate implements Comparable<Coordinate>{
 		return localYPos;
 	}
 	
-	public void setLocalX( int x){
+	public void setLocal(int x, int y){
 		localXPos = x;
-	}
-	public void setLocalY( int y){
 		localYPos = y;
 	}
 	

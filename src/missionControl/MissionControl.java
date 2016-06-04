@@ -256,11 +256,11 @@ public class MissionControl extends Application{
 							VBox content = new VBox();
 							Label title = new Label("\nROVER_03 TRACKER:\n");
 							title.getStyleClass().add("consoleText");
-							Label origin = new Label("ORIGIN: [ " + tracker.getStartingPoint().xpos + " , " + tracker.getStartingPoint().ypos + " ]");
+							Label origin = new Label("ORIGIN: [ " + tracker.getOrigin().getAbsoluteX() + " , " + tracker.getOrigin().getAbsoluteY() + " ]");
 							origin.getStyleClass().add("consoleText");
-							Label destin = new Label("DESTINATION: [ " + tracker.getDestination().xpos + " , " + tracker.getDestination().ypos + " ]");
+							Label destin = new Label("DESTINATION: [ " + tracker.getDestination().getAbsoluteX() + " , " + tracker.getDestination().getAbsoluteY() + " ]");
 							destin.getStyleClass().add("consoleText");
-							Label distance = new Label("DISTANCE LEFT: [ " + tracker.getDistanceTracker().xpos + " , " + tracker.getDistanceTracker().ypos + " ]");
+							Label distance = new Label("DISTANCE LEFT: [ " + tracker.getXDistance() + " , " + tracker.getYDistance() + " ]");
 							distance.getStyleClass().add("consoleText");
 							content.getChildren().addAll(title,origin,destin,distance);
 							module.getChildren().add(content);

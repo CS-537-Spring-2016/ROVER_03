@@ -1,6 +1,6 @@
 package tasks;
 
-import common.Coord;
+import movement.Coordinate;
 
 public class Task {
 	
@@ -8,11 +8,11 @@ public class Task {
 	private String recvFrom;
 	private String terrain;
 	private String scienceType;
-	private Coord destination;
+	private Coordinate destination;
 	
 	/*----------------------------------------------- CONSTRUCTOR -------------------------------------------------------*/
 	
-	public Task(String roverName, String terrain, String scienceType, Coord destination){
+	public Task(String roverName, String terrain, String scienceType, Coordinate destination){
 		this.recvFrom = roverName;
 		this.terrain = terrain;
 		this.scienceType = scienceType;
@@ -38,11 +38,11 @@ public class Task {
 	}
 	
 	/* Returns the Coord representation of the destination */
-	public Coord getDestination(){
+	public Coordinate getDestination(){
 		return destination;
 	}
 	
 	public String toString(){
-		return terrain + " " + scienceType + " " + destination.xpos + " " + destination.ypos;
+		return terrain + " " + scienceType + " " + destination.getAbsoluteX() + " " + destination.getAbsoluteY();
 	}
 }

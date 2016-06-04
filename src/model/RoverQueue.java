@@ -4,6 +4,7 @@ import java.awt.geom.Point2D;
 import java.util.ArrayList;
 
 import common.Coord;
+import movement.Coordinate;
 import tasks.Task;
 
 public class RoverQueue {
@@ -21,14 +22,14 @@ public class RoverQueue {
 	}
 	
 	//Finds the closest task from the current location
-	public Task closestTask(Coord currentLocation){
+	public Task closestTask(Coordinate currentLocation){
 	
 		/* Makes current location into a Point2D object */
-		Point2D point = new Point2D.Double(currentLocation.xpos, currentLocation.ypos);
+		Point2D point = new Point2D.Double(currentLocation.getAbsoluteX(), currentLocation.getAbsoluteY());
 		Double closest = Double.POSITIVE_INFINITY; 
 		
 		for(Task t: tasks){
-			Point2D pt = new Point2D.Double(t.getDestination().xpos, t.getDestination().ypos);
+			Point2D pt = new Point2D.Double(t.getDestination().getAbsoluteX(), t.getDestination().getAbsoluteY());
 			Double distanceFromCurr = point.distance(pt);
 			if(distanceFromCurr < closest) {
 				closest = distanceFromCurr;
@@ -58,7 +59,7 @@ public class RoverQueue {
 		this.tasks = tasks;
 	}
 	
-	private boolean contains(Coord c){
+	private boolean contains(Coordinate c){
 		for(Task t: tasks)
 			if(t.getDestination().equals(c))
 				return true;

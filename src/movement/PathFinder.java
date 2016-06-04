@@ -1,8 +1,6 @@
 package movement;
 
-import java.awt.geom.Point2D;
 import java.util.ArrayList;
-import java.util.Map;
 import java.util.Stack;
 
 import common.Coord;
@@ -11,53 +9,59 @@ import common.ScanMap;
 import enums.Terrain;
 import trackingUtility.Tracker;
 
+/**
+ * Pathfinder is a class that uses various methods to facilitate the movement of the rover
+ * and provide the shortest path to the destination. Pathfinder is instantiated once per mission. Each path
+ * that is created by the generate path method is a max of 4 moves, the generate path should be called again for
+ * the next 4 moves.
+ * @author Carlos Galdamez
+ */
 public class PathFinder {
 
-	private MapTile[][] tiles;
-	private Tracker tracker;
-	private boolean pathFound = false;
-	private Stack<Coordinate> path; 
+	private MapTile[][] tiles;				/* 7 x 7 scan of rover */
+	private Tracker tracker;				/* This will be a reference to the tracker class being used by the rover */
+	private boolean pathFound = false;		/* Boolean used to know when to stop searching for a path */
+	private Stack<Coordinate> path; 		/* This stack is used to store coordinate objects that are possible points in the path the rover will take*/
 	public Coordinate start;
 	public Coordinate end;
 
-	public PathFinder(ScanMap map, Tracker tracker, Coord start, Coord end){
-		System.out.println("----------------------------------NEW PATH---------------------------------- ");
-		setMap(map);
+	/*---------------------------------------------------- CONSTRUCTOR ----------------------------------------------------*/
+	
+	/**
+	 * Initializes Pathfinder object.
+	 * @param tracker -reference to rover's tracker object.
+	 * @see Stack
+	 * @see Tracker
+	 * @see Coordinate
+	 */
+	public PathFinder(Tracker tracker){
 		this.tracker = tracker;
 		path = new Stack<Coordinate>();
-		setStart(start);
-		this.end = new Coordinate(end.xpos,end.ypos,Coordinate.TYPE.ABSOLUTE);
-		System.out.println("START: " + this.start);
-		System.out.println("END: " + this.end);
-		//System.exit(0);
+		end = tracker.getDestination();
 	}
-	
-	public void setMap(ScanMap map){
-		tiles = map.getScanMap();
-	}
-	
-	public void setStart(Coord start){
+		
+	private void initialize(ScanMap map){
 		pathFound = false;
-		this.start = new Coordinate(start.xpos,start.ypos,Coordinate.TYPE.ABSOLUTE);
-		// These are specific to our rover because they have no range extender
-		this.start.setLocalX(3);
-		this.start.setLocalY(3);
-		tracker.lastVisited.add(this.start);
-		System.out.println("START: " + this.start);
-		System.out.println("END: " + this.end);
+		tiles = map.getScanMap();
+		start = tracker.getCurrentLocation();
+		start.setLocal(3,3);
+		tracker.lastVisited.add(start.clone());
+		System.out.println("START: " + start);
+		System.out.println("END: " + end);
 	}
 
-	public ArrayList<String> generatePath(){
+	public ArrayList<String> generatePath(ScanMap map){
+		initialize(map);
 		if(tracker.targetInRange()){
-			Coordinate curr = new Coordinate(tracker.getDistanceTracker().xpos + 3, tracker.getDistanceTracker().ypos + 3, Coordinate.TYPE.LOCAL);
-			System.out.println("TARGET IS IN RANGE, AVAILABLE ROUTE? : " + !blocked(curr));
-			if(blocked(curr)) return null;
+			System.out.println("TARGET IS IN RANGE");
+			Coordinate curr = new Coordinate(tracker.getXDistance() + start.getLocalX(), tracker.getYDistance() + start.getLocalX(), Coordinate.TYPE.LOCAL);
+			if(blocked(curr)) return null;   /* If it is blocked it is on a tile we cannot access */
 			path.push(curr);
 			setPath(curr);
 		}
 		if(!pathFound){
 			int[] order = {3,2,4,5,1,6,0};
-			if(tracker.getDistanceTracker().ypos >=-2 && tracker.getDistanceTracker().ypos <= 2 && tracker.getDistanceTracker().xpos > 0){
+			if(tracker.getYDistance() >= -2 && tracker.getYDistance() <= 2 && tracker.getXDistance() > 0){
 				for(int i = tiles.length-1; i >= 0; i--){
 					for(int j = 0; j < order.length; j++){
 						if(pathFound) break;
@@ -66,7 +70,7 @@ public class PathFinder {
 					if(pathFound) break;
 				}
 			}
-			else if(tracker.getDistanceTracker().xpos >=-2 && tracker.getDistanceTracker().xpos <= 2 && tracker.getDistanceTracker().ypos < 0){
+			else if(tracker.getXDistance() >=-2 && tracker.getXDistance() <= 2 && tracker.getYDistance() < 0){
 				for(int i = 0; i < tiles.length; i++){
 					for(int j = 0; j < order.length; j++){
 						if(pathFound) break;
@@ -75,7 +79,7 @@ public class PathFinder {
 					if(pathFound) break;
 				}
 			}
-			else if(tracker.getDistanceTracker().ypos >=-2 && tracker.getDistanceTracker().ypos <= 2 && tracker.getDistanceTracker().xpos < 0){
+			else if(tracker.getYDistance() >=-2 && tracker.getYDistance() <= 2 && tracker.getXDistance() < 0){
 				for(int i = 0; i < tiles.length; i++){
 					for(int j = 0; j < order.length; j++){
 						if(pathFound) break;
@@ -84,7 +88,7 @@ public class PathFinder {
 					if(pathFound) break;
 				}
 			}
-			else if(tracker.getDistanceTracker().xpos >=-2 && tracker.getDistanceTracker().xpos <= 2 && tracker.getDistanceTracker().ypos > 0){
+			else if(tracker.getXDistance() >=-2 && tracker.getXDistance() <= 2 && tracker.getYDistance() > 0){
 				for(int i = tiles.length-1; i >= 0; i--){
 					for(int j = 0; j < order.length; j++){
 						if(pathFound) break;
@@ -105,7 +109,7 @@ public class PathFinder {
 				}
 			}
 			else if(start.compareTo(end) == 3){
-				for(int i = tiles.length-2; i >= 1; i--){ 
+				for(int i = tiles.length - 2; i >= 1; i--){ 
 					for(int j = 1; j < tiles.length - 1; j++){
 						if(pathFound) break;
 						search(i,j);
@@ -116,8 +120,8 @@ public class PathFinder {
 				}
 			}
 			else if(start.compareTo(end) == 2){
-				for(int i = 1; i < tiles.length - 1 ; i++){ 
-					for(int j = tiles.length-2; j >= 1; j--){
+				for(int i = 1 ; i < tiles.length - 1 ; i++){ 
+					for(int j = tiles.length - 2; j >= 1; j--){
 						if(pathFound) break;
 						search(i,j);
 					}
@@ -154,16 +158,14 @@ public class PathFinder {
 	}
 
 	private void search(int localX, int localY){
-		
+		System.out.println("VISITED: " + tracker.lastVisited.toString());
 		Coordinate curr = new Coordinate(localX,localY,Coordinate.TYPE.LOCAL);
 		int[] offsetFromStart = start.getOffset(curr);
 		curr.setAbsolute(offsetFromStart[0] + start.getAbsoluteX(),offsetFromStart[1] + start.getAbsoluteY());
 		System.out.println(curr);
-		//System.exit(0);
 		path.clear();
 		System.out.println("ABOVE COORDINATE IS BLOCKED? : " + (blocked(curr) && getNeighbors(curr.getLocalX(),curr.getLocalY()).size() > 1));
-		if(blocked(curr) || curr.equals(start) || getNeighbors(curr.getLocalX(),curr.getLocalY()).size() <= 1) return;
-		//System.exit(0);
+		if(blocked(curr) || curr.equals(start)) return;
 		path.push(curr);
 		setPath(curr);
 	}
@@ -175,10 +177,6 @@ public class PathFinder {
 				|| inStack(coord)
 				|| tracker.hasVisited(coord);
 	}
-
-	//	private Coord getOffset(Coord c){
-	//		return new Coord(c.xpos - 3, c.ypos - 3);
-	//	}
 
 
 	private void setPath(Coordinate current){
@@ -198,21 +196,11 @@ public class PathFinder {
 
 	private Coordinate nextBest(Coordinate current){
 		ArrayList<Coordinate> neighbors = getNeighbors(current.getLocalX(),current.getLocalY());
-//
-//		for(Coordinate c: neighbors)
-//			System.out.println("NEIGHBOR: " + c);
-
-		//System.exit(0);
-
-		/* Makes current location into a Point2D object */
 		Double closest = Double.POSITIVE_INFINITY; 
 
 		Coordinate next = null;
 
 		for(Coordinate tile: neighbors){
-			//System.out.println("NEIGHBOR: " + tile);
-			//Point2D pt = new Point2D.Double(tile.xpos, tile.ypos);
-
 			Double distanceFromCurr = start.getDistance(tile, Coordinate.TYPE.LOCAL);
 			if(distanceFromCurr < closest) {
 				closest = distanceFromCurr;
@@ -222,7 +210,6 @@ public class PathFinder {
 
 		path.push(next);
 		System.out.println("NEXT MOVE: " + next);
-		//System.exit(0);
 		return next;
 	}
 
