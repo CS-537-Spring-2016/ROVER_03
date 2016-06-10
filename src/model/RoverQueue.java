@@ -1,75 +1,100 @@
 package model;
 
-import java.awt.geom.Point2D;
 import java.util.ArrayList;
 
-import common.Coord;
 import movement.Coordinate;
 import tasks.Task;
 
+/**
+ * RoverQueue is used to store tasks for the rover. Additionally it it helps the
+ * rover decide what task to execute next based on the current distance from the task.
+ * @author Antonio Bang
+ * @author Carlos Galdamez
+ * @see Task
+ * @see Coordinate
+ */
 public class RoverQueue {
 	
 	private ArrayList<Task> tasks;
 	private Task closestTask = null;
-	 
+	
+	/*----------------------------------------------------------- CONSTRUCTOR ------------------------------------------------------------*/
+	
+	/** Constructor instatiates the array list that will hold all of the rover tasks */
 	public RoverQueue(){
 		tasks = new ArrayList<Task>();
 	}
 	
-	public void addTask (Task task){
-		if(!contains(task.getDestination()))
-			tasks.add(task);		
-	}
+	/*------------------------------------------------------------------------------------------------------------------------------------*/
 	
-	//Finds the closest task from the current location
+	/**
+	 * Finds closest task to rover's current location
+	 * @param currentLocation - Coordinate object for rover's currents location
+	 * @return task object for closest task
+	 */
 	public Task closestTask(Coordinate currentLocation){
 	
-		/* Makes current location into a Point2D object */
-		Point2D point = new Point2D.Double(currentLocation.getAbsoluteX(), currentLocation.getAbsoluteY());
-		Double closest = Double.POSITIVE_INFINITY; 
-		
+		Double closest = Double.POSITIVE_INFINITY; /* Set closest distance to infinity */
+
+		/* Iterate through list to find which task is closest to current location 
+		 * closest task will be store in closestTask global variable */
 		for(Task t: tasks){
-			Point2D pt = new Point2D.Double(t.getDestination().getAbsoluteX(), t.getDestination().getAbsoluteY());
-			Double distanceFromCurr = point.distance(pt);
+			Double distanceFromCurr = currentLocation.getDistance(t.getDestination(), Coordinate.TYPE.ABSOLUTE);
 			if(distanceFromCurr < closest) {
 				closest = distanceFromCurr;
-				closestTask = t; 
+				closestTask = t;
 			}
-			System.out.println("The distance from :" + point + " to: " + pt + " is: " + distanceFromCurr); 
+			System.out.println("The distance from :" + currentLocation + " to: " + t.getDestination() + " is: " + distanceFromCurr); 
 		}
-		
 		System.out.println("The closest distance is:" + closest + " which is at: " + closestTask);
 		
 		return closestTask;
 	}
-
-	public boolean isEmpty(){
-		return tasks.isEmpty();
+	
+	/*------------------------------------------- METHODS FOR LIST MANIPULATION AND ACCESS ---------------------------------------------*/
+	
+	/**
+	 * Adds a task to the array list of tasks
+	 * @param task - task object to be added to task list
+	 */
+	public void addTask (Task task){
+		if(!contains(task.getDestination())) /* Check if coordinate for the task is already in the list to prevent duplicates */
+			tasks.add(task);		
 	}
 	
+	/**
+	 * Removes the current closestTask object from the list of tasks
+	 */
 	public void removeCompletedJob(){
 		tasks.remove(closestTask);
 	}
 	
+	/**
+	 * Checks if task list is empty
+	 * @return true or false
+	 */
+	public boolean isEmpty(){
+		return tasks.isEmpty();
+	}
+	
+	/**
+	 * Gets list of tasks
+	 * @return list of tasks
+	 */
 	public ArrayList<Task> getTasks() {
 		return tasks;
 	}
-
-	public void setPositionList(ArrayList<Task> tasks) {
-		this.tasks = tasks;
-	}
 	
+	/**
+	 * Checks if the specified coordinate is already in the task list
+	 * @param c - Coordinate object
+	 * @return true or false
+	 */
 	private boolean contains(Coordinate c){
 		for(Task t: tasks)
 			if(t.getDestination().equals(c))
 				return true;
 		return false;
 		
-	}
-
-	public void displayLocation(){
-		for(Task task: tasks)
-			System.out.println("Location from Rover:" + task.getDestination());
 	}	
-	
 }

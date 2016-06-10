@@ -12,12 +12,15 @@ import model.RoverQueue;
 import movement.Coordinate;
 import tasks.Task;
 
-
+/**
+ * This class is used for communication between rovers. Originally it had been set up to keep connections
+ * to other rovers alive. However blue corporation decided it was better to close connection immediately after
+ * sending a string. Therefore it closes sockets and input ports immediately. This rover server class is built only
+ * to receive communications from others not to send. No output stream is used. 
+ * @author Carlos Galdamez
+ */
 public class RoverServer implements Runnable{
 
-	/* Rover name and listening port
-	 * This port number only applies to ROVER_03
-	 */
 	private final static int PORT = 53703;
 	
 	private RoverQueue roverQueue;
@@ -37,8 +40,6 @@ public class RoverServer implements Runnable{
 	@Override
 	public void run() {	// Thread that continuously listens for incoming connections
 		
-		/* I do not need to create a thread when I receive a connection request because a new connection request is send from other rover
-		 * when a message needs to be sent */
 		while(true){
 			try {
 				Socket socket = serverSocket.accept();
@@ -46,7 +47,10 @@ public class RoverServer implements Runnable{
 				if(input.ready()){
 					String loc = input.readLine();
 					String parsedInput[] = loc.split(" ");
-					if(!parsedInput[0].equals("ROCK")){
+					/* I will receive string in the following format : ROCK RADIOACTIVE 2 3
+					 * The last two numbers are the coordinates x and y respectively first word is the terrain and
+					 * second word is the type of science */
+					if(!parsedInput[0].equals("ROCK")){ /*Since I have threads if I receive anything with ROCK in it I will just ignore it */
 						Coordinate destination = new Coordinate(Integer.parseInt(parsedInput[2]),Integer.parseInt(parsedInput[3]), Coordinate.TYPE.ABSOLUTE);
 						Task task = new Task("ROVER", parsedInput[0],parsedInput[1],destination);
 						roverQueue.addTask(task);
@@ -58,6 +62,10 @@ public class RoverServer implements Runnable{
 		}
 	}
 	
+	/**
+	 * Gets rover queue
+	 * @return rover queue object
+	 */
 	public RoverQueue getQueue(){
 		return roverQueue;
 	}

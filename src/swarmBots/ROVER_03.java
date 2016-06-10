@@ -24,6 +24,10 @@ import movement.PathFinder;
 import tasks.Task;
 import trackingUtility.Tracker;
 
+/**
+ * This is the ROVER_03 implementation. Some code was used from Richard's sample code for ROVER_98 
+ * @author Carlos Galdamez
+ */
 public class ROVER_03{
 
 	/*--------------------------------------------- CONSTANTS AND VARIABLES ----------------------------------------------------*/
@@ -179,7 +183,8 @@ public class ROVER_03{
 		Thread.sleep(SLEEP_TIME);		/* Thread needs to sleep after every move so it does not send too many requests */
 	}
 
-	/* Used to send message to command center when job is completed */
+	/* Used to send message to command center when job is completed. Command center was implemented by 
+	 * ROVER_06. See ROVER_06 command center code to see what it does.*/
 	private void sendAcknowledgement(String acknowledgement){
 		try{
 			Socket commandCenter = new Socket(COMMAND_CENTER_IP, COMMAND_CENTER_PORT);
@@ -402,13 +407,10 @@ public class ROVER_03{
 	public static void main(String args[]) throws IOException, InterruptedException{
 		ROVER_03 client;
 		if(!(args.length == 0)){
-			// 192.168.1.106
 			client = new ROVER_03(args[0]);
 		} else {
 			client = new ROVER_03("127.0.0.1");
 		}
-
-
 		client.start();
 	} 
 

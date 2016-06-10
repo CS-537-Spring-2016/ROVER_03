@@ -26,8 +26,11 @@ import swarmBots.ROVER_03;
 import tasks.Task;
 import trackingUtility.Tracker;
 
-/* Mission Control displays everything that is displayed on the console in a gui including 
- * everything that the rover can scan */
+/**
+ * Mission Control displays everything that is displayed on the console in a gui including 
+ * everything that the rover can scan.
+ * @author Carlos Galdamez
+ */
 public class MissionControl extends Application{
 	/* Main method to start rover and mission control */
 	public static void main(String args[]) throws IOException, InterruptedException{

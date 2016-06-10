@@ -2,9 +2,13 @@ package tasks;
 
 import movement.Coordinate;
 
+/**
+ * Task class contains information regarding a task a rover has to fulfill.
+ * Rover can set this task or it can also be tasks sent by other rovers.
+ * @author Carlos Galdamez
+ */
 public class Task {
 	
-	/* Name of rover that the task was received from */
 	private String recvFrom;
 	private String terrain;
 	private String scienceType;
@@ -12,6 +16,13 @@ public class Task {
 	
 	/*----------------------------------------------- CONSTRUCTOR -------------------------------------------------------*/
 	
+	/**
+	 * Constructor instantiates a task and sets values of task to the values specified in the arguments
+	 * @param roverName
+	 * @param terrain
+	 * @param scienceType
+	 * @param destination
+	 */
 	public Task(String roverName, String terrain, String scienceType, Coordinate destination){
 		this.recvFrom = roverName;
 		this.terrain = terrain;
@@ -19,28 +30,41 @@ public class Task {
 		this.destination = destination;
 	}
 	
-	
 	/*--------------------------------------------------- GETTERS -------------------------------------------------------*/
 	
-	/* Returns name of rover that task was received from */
+	/**
+	 * Gets the rover name that sent this task
+	 * @return name of rover that task was received from
+	 */
 	public String getRoverName(){
 		return recvFrom;
 	}
-	
-	/* Returns the type of terrain the destination is on */
+
+	/**
+	 * Gets the terrain that the destination is on
+	 * @return string representation of the terrain the destination is on
+	 */
 	public String getTerrain(){
 		return terrain;
 	}
 	
-	/* Returns the type of science that will be collected at the destination */
+	/**
+	 * Gets type of science at destination
+	 * @return string representation of the type of science at the destination
+	 */
 	public String getScienceType(){
 		return scienceType;
 	}
 	
-	/* Returns the Coord representation of the destination */
+	/**
+	 * Gets destination coordinate object
+	 * @return coordinate object of destination
+	 */
 	public Coordinate getDestination(){
 		return destination;
 	}
+	
+	/*-------------------------------------------------------- TO STRING METHOD -------------------------------------------*/
 	
 	public String toString(){
 		return terrain + " " + scienceType + " " + destination.getAbsoluteX() + " " + destination.getAbsoluteY();
